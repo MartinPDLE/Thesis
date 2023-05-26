@@ -39,3 +39,5 @@ abline(h=60, col = "gray60")
 sqrt(mean((train$total_cases-train$p)^2,na.rm=T))/sqrt(mean((train$total_cases)^2))
 #for validation data 2011-2013
 sqrt(mean((pred$total_cases-pred$p)^2,na.rm=T))/sqrt(mean((pred$total_cases)^2))
+
+#test
