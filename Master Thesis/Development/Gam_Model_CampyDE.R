@@ -8,9 +8,9 @@ campyDE <- campyDE%>%
   mutate(case2 = lag(case, n=2))
 
 library(mgcv)
-form <- as.formula("case ~ s(l3.hum,k=4)+s(case2,k=4)")
+form <- as.formula("case ~ s(l3.hum,k=4)+s(case2,k=4)+s(case,k=4)")
 
-training <- campyDE[1:366,]
+training <- campyDE[1:416,]
 
 attach(training)
 mod.train <- gam(form, family=quasipoisson, na.action=na.exclude, data=training)
