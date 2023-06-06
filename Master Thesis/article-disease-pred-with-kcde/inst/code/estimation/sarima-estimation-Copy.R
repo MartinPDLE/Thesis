@@ -71,6 +71,8 @@ for(data_set in all_data_sets) {
     seasonally_differenced_log_sarima_fit <-
         auto.arima(seasonally_differenced_log_prediction_target)
     
+    summary(seasonally_differenced_log_sarima_fit)
+    
     saveRDS(seasonally_differenced_log_sarima_fit,
         file = file.path(
             "../../../inst/results",

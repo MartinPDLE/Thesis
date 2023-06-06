@@ -4,8 +4,6 @@ library(dplyr)
 all_data_sets <- c("ili_national", "dengue_sj")
 all_data_sets <- "dengue_sj"
 
-setwd("~/Documents/Uni/Epidemiology/Master Thesis/Code/article-disease-pred-with-kcde/inst/code/prediction")
-
 for(data_set in all_data_sets) {
     ### Load data set and set variables describing how the fit is performed
     if(identical(data_set, "ili_national")) {
@@ -42,9 +40,9 @@ for(data_set in all_data_sets) {
         log_prediction_target <- log(data[, prediction_target_var])
     } else if(identical(data_set, "dengue_sj")) {
         ## Load data for Dengue fever in San Juan
-        data <- read.csv("../../../data-raw/Iquitos_total2.csv")
+        data <- read.csv("../../../data-raw/Iquitos_total.csv")
         
-        San_Juan_test <- read.csv("../../../data-raw/Iquitos_total2.csv")
+        San_Juan_test <- read.csv("../../../data-raw/Iquitos_total.csv")
         
         ## Restrict to data from 1990/1991 through 2008/2009 seasons
         train_seasons <- paste0(2000:2007, "/", 2001:2008)
@@ -56,13 +54,12 @@ for(data_set in all_data_sets) {
         ## convert dates
         data$time <- mdy(data$week_start_date)
         
-        xreg <- San_Juan_test%>%
-          select(c(air_temperature4,specific_humidity5,precipitation_amount5))
+        #xreg <- San_Juan_test%>%
+         # select(c(air_temperature,relative_humidity,precipitation_amount))
        
         
-        xreg <- as.matrix(xreg)
-        xreg1 <- xreg[53:416,]
-        ctrl <- data$total_cases[53:416] +1
+        #xreg <- as.matrix(xreg)
+        #xreg1 <- xreg[1:312,]
         ## Add time_index column.  This is used for calculating the periodic kernel.
         ## Here, this is calculated as the number of days since some origin date (1970-1-1 in this case).
         ## The origin is arbitrary.
@@ -81,16 +78,15 @@ for(data_set in all_data_sets) {
                 log_prediction_target[seq(from = 1, to = length(log_prediction_target) - 52)],
             frequency = 52)
     
-    #seasonally_differenced_log_sarima_fit <-
-     #   auto.arima(seasonally_differenced_log_prediction_target, xreg = xreg1)
+    sj_log_sarima_fit <-
+        auto.arima(log_prediction_target)
     
-    seasonally_differenced_log_sarima_fit<- auto.arima(log_prediction_target, )
-    
-     saveRDS(seasonally_differenced_log_sarima_fit,
-        file = file.path(
-            "../../../inst/results",
-            data_set,
-            "estimation-results/sarima-fit_iqlag5.rds"))
+   #sj_log_sarima_fit <- auto.arima(log_prediction_target)
+  #  saveRDS(seasonally_differenced_log_sarima_fit,
+  #      file = file.path(
+  #          "../../../inst/results",
+  #          data_set,
+  #          "estimation-results/sarima-fit_iq2.rds"))
 }
 
 predictions_df <- data.frame(ph=rep(seq_len(52), times = 2 * 52),
@@ -147,38 +143,38 @@ for(predictions_df_row_ind in sarima_inds) {
 	predictions_df$week_start_date[predictions_df_row_ind] <- San_Juan_test$week_start_date[last_obs_ind + as.numeric(ph)]
 	
 	
-#	new_data <- ts(log(San_Juan_test$total_cases[seq_len(last_obs_ind)] + 1), frequency = 52)
-#	updated_sj_log_sarima_fit <- Arima(new_data, model = sj_log_sarima_fit)
+	new_data <- ts(log(San_Juan_test$total_cases[seq_len(last_obs_ind)] + 1), frequency = 52)
+  updated_sj_log_sarima_fit <- Arima(new_data, model = sj_log_sarima_fit)
 
 
-	new_data <- log(San_Juan_test$total_cases[seq_len(last_obs_ind)] + 1)
-	seasonal_diff_new_data <- ts(new_data[seq(from = 53, to = length(new_data))] -
-	    new_data[seq(from = 1, to = length(new_data) - 52)], frequency = 52)
-	xreg2 <- xreg[1:length(seasonal_diff_new_data),]
-	updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit, xreg = xreg2)
+	#new_data <- log(San_Juan_test$total_cases[seq_len(last_obs_ind)] + 1)
+	#seasonal_diff_new_data <- ts(new_data[seq(from = 53, to = length(new_data))] -
+	#    new_data[seq(from = 1, to = length(new_data) - 52)], frequency = 52)
+	#xreg2 <- xreg[1:length(seasonal_diff_new_data),]
+	#updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit)
 	
 	
 	
-	#predict_result <- forecast(updated_sj_log_sarima_fit, h = ph, xreg = xreg2)
-	predict_result <- predict(updated_sj_log_sarima_fit, n.ahead = ph, newxreg = xreg2, se.fit = T)
+	predict_result <- predict(updated_sj_log_sarima_fit, h = ph)
 	
-#	predictive_log_mean <- as.numeric(predict_result$pred[ph])
-#	predictions_df$prediction[predictions_df_row_ind] <- exp(predictive_log_mean) - 1
+predictive_log_mean <- as.numeric(predict_result$pred[ph])
+predictions_df$prediction[predictions_df_row_ind] <- exp(predictive_log_mean) - 1
 	
-	predictive_log_mean <- as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]
-	predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]) - 1
+	#predictive_log_mean <- as.numeric(predict_result$x[ph]) + new_data[last_obs_ind + ph - 52]
+	#predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$x[ph]) + new_data[last_obs_ind + ph - 52]) - 1
 
-	
+
 	predictions_df$AE[predictions_df_row_ind] <- abs(predictions_df$prediction[predictions_df_row_ind] - San_Juan_test$total_cases[last_obs_ind + ph])
 	predictions_df$log_score[predictions_df_row_ind] <- dlnorm(San_Juan_test$total_cases[last_obs_ind + ph] + 1,
-	               meanlog = predictive_log_mean,
-	               sdlog = as.numeric(predict_result$se[ph]),
-	               log = TRUE)
+		meanlog = predictive_log_mean,
+		sdlog = as.numeric(predict_result$se[ph]),
+		log = TRUE)
 	temp <- qlnorm(c(0.05, 0.25, 0.75, 0.95),
-	               meanlog = predictive_log_mean,
-	               sdlog = as.numeric(predict_result$se[ph]))
-	predictions_df[predictions_df_row_ind, c("predictive_90pct_lb", "predictive_50pct_lb", "predictive_50pct_ub", "predictive_90pct_ub")] <-
-	  temp - 1
+		meanlog = predictive_log_mean,
+		sdlog = as.numeric(predict_result$se[ph]))
+	#temp <- c(predict_result$lower[ph, 2],predict_result$lower[ph, 1],predict_result$upper[ph, 2 ],predict_result$upper[ph, 1 ])
+	predictions_df[predictions_df_row_ind, c("predictive_95pct_lb", "predictive_80pct_lb", "predictive_80pct_ub", "predictive_95pct_ub")] <-
+		temp - 1
 	print(predictions_df_row_ind)
 }
 
@@ -187,34 +183,25 @@ predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_te
 predictions_df$ph <- as.factor(predictions_df$ph)
 
 sarima_predictions_df <- predictions_df
-save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_iqlag5.Rdata")
+save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_iq2.Rdata")
 
-predictions_df$week_start_date <- as.character(predictions_df$week_start_date)
+predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
+w1 <- predictions_df$prediction[predictions_df$ph==1]
+pred <- San_Juan_test[365:468,]
+pred$date <- mdy(pred$week_start_date)
 
-#library(ggplot2)
-#ggplot() +
-#	geom_line(aes(x = week_start_date, y = total_cases, group = 1), data = San_Juan_test) +
-#	geom_line(aes(x = week_start_date, y = prediction, colour = ph, group = 1), data = predictions_df[predictions_df$ph %in% c(1, 13, 26, 39, 52), , drop = FALSE]) +
-#	theme_bw()
+par(mfrow=c(1,1))
+plot(pred$date,pred$total_cases, type="l", xlab= "time [years]",ylab="Dengue Cases", main ="Predicted vs Actual Dengue Cases")
+points(pred$date,w1,type="l", col="blue")
+
 library(ggplot2)
 ggplot() +
-  geom_line(aes(x = week_start_date, y = total_cases, group = 1), data = San_Juan_test) +
-  geom_line(aes(x = week_start_date, y = prediction, colour = ph, group =ph), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
-  theme_bw()
+	geom_line(aes(x = 1:468, y = total_cases, group=1), data = San_Juan_test) +
+	geom_line(aes(x = 365:468, y = w1, colour = ph), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
+	theme_bw()+
+  ggtitle("Sarima Prediction of Dengue Cases w.o Seasonal Differencing")+
+  ylab("Dengue Cases")+
+  xlab("Week")
 
-
-
-#library(ggplot2)
-#ggplot() +
-#  geom_line(aes(x=1:468, y = total_cases, group = 1), data = San_Juan_test) +
-#  #geom_line(aes(x=316:468, y = plag, colour = ph, group = 1), data = predictions_df[predictions_df$ph %in% 5, , drop = FALSE]) +
-#  geom_line(aes(x=317:468, y = plag, colour = "5", group = 1)) +
-#  geom_line(aes(x=1:312, y = dlag, group = 1, color ="fit")) +
-#  theme_bw() 
-
-  
-fit_data <- exp(as.numeric(seasonally_differenced_log_sarima_fit$x)) - 1
-dlag <- lag(fit_data, n=52) 
-plag <-lag(w5$prediction, n=52)
-
+w1 <- predictions_df$prediction[predictions_df$ph==1]
 updated_sj_log_sarima_fit$var.coef <- matrix(1, nrow = 8, ncol = 8)

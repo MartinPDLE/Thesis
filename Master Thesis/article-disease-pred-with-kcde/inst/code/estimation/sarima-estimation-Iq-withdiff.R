@@ -188,6 +188,12 @@ save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/s
 
 predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 w1 <- predictions_df$prediction[predictions_df$ph==1]
+pred <- San_Juan_test[365:468,]
+pred$date <- mdy(pred$week_start_date)
+
+par(mfrow=c(1,1))
+plot(pred$date,pred$total_cases, type="l",ylim=c(-3,100), xlab= "time [years]",ylab="Dengue Cases", main ="Predicted vs Actual Dengue Cases")
+points(pred$date,w1,type="l", col="blue")
 
 library(ggplot2)
 ggplot() +

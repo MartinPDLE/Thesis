@@ -24,13 +24,13 @@ campyDE$date <- as.Date(campyDE$date)
         prediction_target_var <- "case"
         log_prediction_target <- log(data[, prediction_target_var])
         
-        seasonally_differenced_log_prediction_target <-
-          ts(log_prediction_target[seq(from = 53, to = length(log_prediction_target))] -
-               log_prediction_target[seq(from = 1, to = length(log_prediction_target) - 52)],
-             frequency = 52)
+        #seasonally_differenced_log_prediction_target <-
+        #  ts(log_prediction_target[seq(from = 53, to = length(log_prediction_target))] -
+        #       log_prediction_target[seq(from = 1, to = length(log_prediction_target) - 52)],
+        #     frequency = 52)
         
-        seasonally_differenced_log_sarima_fit <-
-          auto.arima(seasonally_differenced_log_prediction_target)
+        sj_log_sarima_fit <-
+          auto.arima(log_prediction_target)
         
         summary(seasonally_differenced_log_sarima_fit)
         
@@ -116,25 +116,25 @@ for(predictions_df_row_ind in sarima_inds) {
 	predictions_df$week_start_date[predictions_df_row_ind] <- San_Juan_test$week_start_date[last_obs_ind + as.numeric(ph)]
 	
 	
-#	new_data <- ts(log(San_Juan_test$total_cases[seq_len(last_obs_ind)] + 1), frequency = 52)
-#	updated_sj_log_sarima_fit <- Arima(new_data, model = sj_log_sarima_fit)
+new_data <- ts(log(San_Juan_test$case[seq_len(last_obs_ind)] + 1), frequency = 52)
+	updated_sj_log_sarima_fit <- Arima(new_data, model = sj_log_sarima_fit)
 
 
-	new_data <- log(San_Juan_test$case[seq_len(last_obs_ind)]+1)
-	seasonal_diff_new_data <- ts(new_data[seq(from = 53, to = length(new_data))] -
-	    new_data[seq(from = 1, to = length(new_data) - 52)], frequency = 52)
-	updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit)
+#	new_data <- log(San_Juan_test$case[seq_len(last_obs_ind)]+1)
+#	seasonal_diff_new_data <- ts(new_data[seq(from = 53, to = length(new_data))] -
+#	    new_data[seq(from = 1, to = length(new_data) - 52)], frequency = 52)
+#	updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit)
 	
 	
 	
 	#predict_result <- forecast(updated_sj_log_sarima_fit, h = ph, xreg = xreg2)
 	predict_result <- predict(updated_sj_log_sarima_fit, n.ahead = ph, se.fit = T)
 	
-#	predictive_log_mean <- as.numeric(predict_result$pred[ph])
-#	predictions_df$prediction[predictions_df_row_ind] <- exp(predictive_log_mean) - 1
+predictive_log_mean <- as.numeric(predict_result$pred[ph])
+	predictions_df$prediction[predictions_df_row_ind] <- exp(predictive_log_mean) - 1
 	
-	predictive_log_mean <- as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]
-	predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]) - 1
+	#predictive_log_mean <- as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]
+	#predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]) - 1
 
 
 	predictions_df$AE[predictions_df_row_ind] <- abs(predictions_df$prediction[predictions_df_row_ind] - San_Juan_test$case[last_obs_ind + ph])
@@ -163,18 +163,15 @@ w1 <- predictions_df$prediction[predictions_df$ph==1]
 u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
 l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
 
-par(mfrow=c(1,1))
-plot(pred$date,pred$case, type="l", xlab= "time [years]",ylab="Campylobacteriosis Cases", main ="Predicted vs Actual Campylobacteriosis Cases")
-points(pred$date,w1,type="l", col="blue")
 
 library(ggplot2)
 ggplot() +
 	geom_line(aes(x = 419:522, y = case), data = pred) +
-	geom_line(aes(x = 419:522, y = w1, color ="blue")) +
+	geom_line(aes(x = 419:522, y = prediction, colour ="prediction"), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
   #geom_line(aes(x=419:522, y=u95),linetype="dashed")+
   #geom_line(aes(x=419:522, y=l95),linetype="dashed")+
 	theme_bw()+
-  ggtitle("Predicted vs Actual Campylobacteriosis Cases")+
+  ggtitle("Sarima Prediction of Campylobacteriosis Cases")+
   ylab("Campylobacteriosis Cases")+
   xlab("Week")
 
