@@ -28,5 +28,11 @@ cor(total_cases, short_hum, method="spearman", use="pairwise.complete.obs")
 plot(lag, as.numeric(cor(total_cases, short_hum, method="spearman", use="pairwise.complete.obs")), ylab="Correlation coefficient", xlab="Lag of weekly adj. relative humidity")          
 title(main="Dengue cases vs. relative humidity")
 
+#campyDE
+hum <- data.frame(hum, l1.hum, l2.hum, l3.hum, l4.hum,l5.hum)
+cor(case, hum, method="spearman", use="pairwise.complete.obs")
+plot(lag, as.numeric(cor(case, hum, method="spearman", use="pairwise.complete.obs")), ylab="Correlation coefficient", xlab="Lag of weekly adj. relative humidity")          
+title(main="Campylobacteriosis cases vs. humidity")
+
 detach(training)
 

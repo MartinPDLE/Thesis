@@ -128,7 +128,7 @@ for(predictions_df_row_ind in sarima_inds) {
 	
 	
 	#predict_result <- forecast(updated_sj_log_sarima_fit, h = ph, xreg = xreg2)
-	predict_result <- predict(updated_sj_log_sarima_fit, n.ahead = ph)
+	predict_result <- predict(updated_sj_log_sarima_fit, n.ahead = ph, se.fit = T)
 	
 #	predictive_log_mean <- as.numeric(predict_result$pred[ph])
 #	predictions_df$prediction[predictions_df_row_ind] <- exp(predictive_log_mean) - 1
@@ -150,7 +150,7 @@ for(predictions_df_row_ind in sarima_inds) {
 	print(predictions_df_row_ind)
 }
 
-predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_test$week_start_date[San_Juan_test$season %in% c("2010,2011")], ]
+#predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_test$week_start_date[San_Juan_test$season %in% c("2010,2011")], ]
 
 predictions_df$ph <- as.factor(predictions_df$ph)
 
@@ -160,11 +160,22 @@ save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/s
 predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 
 w1 <- predictions_df$prediction[predictions_df$ph==1]
+u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
+l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
+
 
 library(ggplot2)
 ggplot() +
 	geom_line(aes(x = 1:nrow(San_Juan_test), y = case), data = San_Juan_test) +
-	geom_line(aes(x = 419:522, y = prediction, colour = ph), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
-	theme_bw()
+	geom_line(aes(x = 419:522, y = prediction, colour ="prediction"), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
+  geom_line(aes(x=419:522, y=u95),linetype="dashed")+
+  geom_line(aes(x=419:522, y=l95),linetype="dashed")+
+	theme_bw()+
+  ggtitle("Sarima Prediction of Campylobacteriosis Cases")+
+  ylab("Campylobacteriosis Cases")+
+  xlab("Week")
+
+pred <- San_Juan_test[419:522,]
+sqrt(mean((pred$case-w1)^2,na.rm=T))/sqrt(mean((w1)^2))
 
 updated_sj_log_sarima_fit$var.coef <- matrix(1, nrow = 8, ncol = 8)

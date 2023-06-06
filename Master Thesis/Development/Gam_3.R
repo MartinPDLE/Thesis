@@ -1,15 +1,16 @@
 setwd("~/Doks/Uni/Epidemiologie/Master Thesis/Thesis-Code/Data")
-Iquitos <- read.csv("Iquitos_total2.csv")
+Iquitos <- read.csv("../Data/Iquitos_total2.csv")
 
 library(mgcv)
-form <- as.formula("total_cases ~ s(total_cases,k=4)+s(total_cases1,k=4)+s(precipitation_amount5,k=4)+s(specific_humidity5,k=4)+s(DTR3,k=4)")
+form <- as.formula("total_cases ~ s(total_cases1,k=4)+s(precipitation_amount5,k=4)+s(specific_humidity5,k=4)+s(DTR,k=4)")
 #form <- as.formula("total_cases ~ s(total_cases,k=4)+s(total_cases1,k=4)+s(precipitation_amount5,k=4)+s(specific_humidity5,k=4)")
 
-training <- Iquitos[1:363,]
+training <- Iquitos[1:364,]
 
 attach(training)
-mod.train <- gam(form, family=quasipoisson, na.action=na.exclude, data=training)
+mod.train <- mgcv::gam(form, family=quasipoisson, na.action=na.exclude, data=training)
 summary(mod.train)
+concurvity(mod.train)
 
 par(mfrow=c(1,1))
 p <- fitted.values(mod.train)
@@ -23,18 +24,18 @@ detach(training)
 f.total <- Iquitos
 ### testing
 attach(f.total)
-preddata <- data.frame(total_cases,total_cases1,precipitation_amount5,specific_humidity5,DTR3)
+preddata <- data.frame(total_cases1,precipitation_amount5,specific_humidity5,DTR3)
 f.total$predict<-predict(mod.train, type="response", newdata=as.data.frame(preddata))
 #c <- forecast(mod.train, newdata =as.data.frame(preddata), h=2)
 
 p <- f.total$predict
-train <- f.total[1:363,]
-pred <- f.total[364:468,]
+train <- f.total[1:364,]
+pred <- f.total[365:468,]
 
 par(mfrow=c(1,1))
 plot(f.total$total_cases, type="l")
 points(train$predict,type="l", col="red")
-points(364:468,pred$predict,type="l", col="blue")
+points(365:468,pred$predict,type="l", col="blue")
 abline(h=60, col = "gray60")
 
 #for training data

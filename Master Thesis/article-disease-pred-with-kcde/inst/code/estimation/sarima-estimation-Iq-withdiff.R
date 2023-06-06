@@ -79,7 +79,7 @@ for(data_set in all_data_sets) {
             frequency = 52)
     
     seasonally_differenced_log_sarima_fit <-
-        auto.arima(seasonally_differenced_log_prediction_target, xreg = xreg1)
+        auto.arima(seasonally_differenced_log_prediction_target, xreg = NULL)
     
    #sj_log_sarima_fit <- auto.arima(log_prediction_target)
   #  saveRDS(seasonally_differenced_log_sarima_fit,
@@ -151,17 +151,18 @@ for(predictions_df_row_ind in sarima_inds) {
 	seasonal_diff_new_data <- ts(new_data[seq(from = 53, to = length(new_data))] -
 	    new_data[seq(from = 1, to = length(new_data) - 52)], frequency = 52)
 	#xreg2 <- xreg[1:length(seasonal_diff_new_data),]
-	updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit)
+	updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit, xreg = NULL)
 	
 	
 	
-	predict_result <- predict(updated_sj_log_sarima_fit, h = ph)
+	#predict_result <- predict(updated_sj_log_sarima_fit, h = ph, newxreg = NULL)
+	predict_result <- forecast(updated_sj_log_sarima_fit, h = ph)
 	
 #predictive_log_mean <- as.numeric(predict_result$pred[ph])
 #predictions_df$prediction[predictions_df_row_ind] <- exp(predictive_log_mean) - 1
 	
-	predictive_log_mean <- as.numeric(predict_result$x[ph]) + new_data[last_obs_ind + ph - 52]
-	predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$x[ph]) + new_data[last_obs_ind + ph - 52]) - 1
+	predictive_log_mean <- as.numeric(predict_result$mean[ph]) + new_data[last_obs_ind + ph - 52]
+	predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$mean[ph]) + new_data[last_obs_ind + ph - 52]) - 1
 
 
 	predictions_df$AE[predictions_df_row_ind] <- abs(predictions_df$prediction[predictions_df_row_ind] - San_Juan_test$total_cases[last_obs_ind + ph])
@@ -178,7 +179,7 @@ for(predictions_df_row_ind in sarima_inds) {
 	print(predictions_df_row_ind)
 }
 
-predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_test$week_start_date[San_Juan_test$season %in% c("2006/2007", "2007/2008", "2008/2009")], ]
+predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_test$week_start_date[San_Juan_test$season %in% c("2007/2008", "2008/2009")], ]
 
 predictions_df$ph <- as.factor(predictions_df$ph)
 
@@ -186,15 +187,18 @@ sarima_predictions_df <- predictions_df
 save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_iq2.Rdata")
 
 predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
+w1 <- predictions_df$prediction[predictions_df$ph==1]
 
 library(ggplot2)
 ggplot() +
 	geom_line(aes(x = 1:468, y = total_cases, group=1), data = San_Juan_test) +
 	geom_line(aes(x = 365:468, y = w1, colour = ph), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
 	theme_bw()+
-  ggtitle("Sarima Prediction of Dengue Cases w.o Seasonal Differencing")+
+  ggtitle("Sarima Prediction of Dengue Cases with Seasonal Differencing")+
   ylab("Dengue Cases")+
   xlab("Week")
 
-w1 <- predictions_df$prediction[predictions_df$ph==1]
+pred <- San_Juan_test[365:468,]
+sqrt(mean((pred$total_cases-w1)^2,na.rm=T))/sqrt(mean((w1)^2))
+
 updated_sj_log_sarima_fit$var.coef <- matrix(1, nrow = 8, ncol = 8)
