@@ -11,6 +11,7 @@ Iquitos <- read.csv("Iquitos_Training_Data.csv")
 #Iquitos$week_start_date <- as.Date(Iquitos$week_start_date, origin = "%m/%d/Y")
 PrecipI <- read_excel("Iquitos_Precip.xlsx", col_names = c("Year","Month","Day","mm"), col_types = c("numeric","numeric","numeric","numeric"))
 PrecipI <- PrecipI[-c(1,2),]
+StaDat <- read.csv("IquitosStationData.csv")
 
 PrecipI <- PrecipI%>%
   filter(Year>=2000 & Year<=2010)

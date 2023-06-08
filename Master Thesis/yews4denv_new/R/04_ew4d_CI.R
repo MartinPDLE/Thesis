@@ -1,7 +1,7 @@
 library(mgcv)
 
 attach(training)
-form <- as.formula("dengue ~ s(templ3,k=4)+s(rainl2,k=4)+s(rainl3,k=4)+s(denguel2,k=4)+s(denguel24,k=4)")
+form <- as.formula("total_ ~ s(templ3,k=4)+s(rainl2,k=4)+s(rainl3,k=4)+s(denguel2,k=4)+s(denguel24,k=4)")
 mod.train <- gam(form, family=quasipoisson, na.action=na.exclude, data=training)
 detach(training)
 
