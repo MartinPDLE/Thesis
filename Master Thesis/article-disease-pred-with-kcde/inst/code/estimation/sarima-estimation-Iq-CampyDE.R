@@ -18,7 +18,7 @@ campyDE$date <- as.Date(campyDE$date)
         data$season_week <- row_number(data$date) %% 52
         data$season_week[data$season_week==0] <- 52
         
-        San_Juan_test <- data
+        Campy_test <- data
         data <- data[data$Year <= 2009, , drop = FALSE]
         
         prediction_target_var <- "case"
@@ -30,7 +30,12 @@ campyDE$date <- as.Date(campyDE$date)
              frequency = 52)
         
         seasonally_differenced_log_sarima_fit <-
+          #Arima(seasonally_differenced_log_prediction_target, order = c(1,1,1), seasonal = list(order=c(1,0,0),period = 53), 
+          #      method = "CSS", optim.method = "BFGS",
+          #      include.mean = F)
           auto.arima(seasonally_differenced_log_prediction_target)
+        
+        
         
         summary(seasonally_differenced_log_sarima_fit)
         
@@ -45,21 +50,6 @@ campyDE$date <- as.Date(campyDE$date)
         ## convert dates
         #data$time <- mdy(data$week_start_date)
         
-        #xreg <- San_Juan_test%>%
-        #  select(c(air_temperature,relative_humidity,precipitation_amount))
-       
-        
-        #xreg <- as.matrix(xreg)
-        #xreg1 <- xreg[1:312,]
-        ## Add time_index column.  This is used for calculating the periodic kernel.
-        ## Here, this is calculated as the number of days since some origin date (1970-1-1 in this case).
-        ## The origin is arbitrary.
-    
-    #saveRDS(seasonally_differenced_log_sarima_fit,
-    #    file = file.path(
-    #        "../../../inst/results",
-    #        "campyDE",
-     #       "estimation-results/sarima-fit_iq2.rds"))
 
 
 predictions_df <- data.frame(ph=rep(seq_len(52), times = 2 * 52),
@@ -98,7 +88,7 @@ predictions_df$predictive_80pct_lb <- NA
 predictions_df$predictive_80pct_ub <- NA
 predictions_df$predictive_95pct_lb <- NA
 predictions_df$predictive_95pct_ub <- NA
-predictions_df$week_start_date <- San_Juan_test$week_start_date[1]
+predictions_df$week_start_date <- Campy_test$week_start_date[1]
 
 
 
@@ -110,17 +100,17 @@ sarima_inds <- which(predictions_df$model == "sarima")
 #sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
-	last_obs_ind <- which(San_Juan_test$Year == predictions_df$last_obs_season[predictions_df_row_ind] &
-		San_Juan_test$season_week == predictions_df$last_obs_week[predictions_df_row_ind])
+	last_obs_ind <- which(Campy_test$Year == predictions_df$last_obs_season[predictions_df_row_ind] &
+		Campy_test$season_week == predictions_df$last_obs_week[predictions_df_row_ind])
 	
-	predictions_df$week_start_date[predictions_df_row_ind] <- San_Juan_test$week_start_date[last_obs_ind + as.numeric(ph)]
+	predictions_df$week_start_date[predictions_df_row_ind] <- Campy_test$week_start_date[last_obs_ind + as.numeric(ph)]
 	
 	
-#	new_data <- ts(log(San_Juan_test$total_cases[seq_len(last_obs_ind)] + 1), frequency = 52)
+#	new_data <- ts(log(Campy_test$total_cases[seq_len(last_obs_ind)] + 1), frequency = 52)
 #	updated_sj_log_sarima_fit <- Arima(new_data, model = sj_log_sarima_fit)
 
 
-	new_data <- log(San_Juan_test$case[seq_len(last_obs_ind)]+1)
+	new_data <- log(Campy_test$case[seq_len(last_obs_ind)]+1)
 	seasonal_diff_new_data <- ts(new_data[seq(from = 53, to = length(new_data))] -
 	    new_data[seq(from = 1, to = length(new_data) - 52)], frequency = 52)
 	updated_sj_log_sarima_fit <- Arima(seasonal_diff_new_data, model = seasonally_differenced_log_sarima_fit)
@@ -137,35 +127,44 @@ for(predictions_df_row_ind in sarima_inds) {
 	predictions_df$prediction[predictions_df_row_ind] <- exp(as.numeric(predict_result$pred[ph]) + new_data[last_obs_ind + ph - 52]) - 1
 
 
-	predictions_df$AE[predictions_df_row_ind] <- abs(predictions_df$prediction[predictions_df_row_ind] - San_Juan_test$case[last_obs_ind + ph])
-	predictions_df$log_score[predictions_df_row_ind] <- dlnorm(San_Juan_test$case[last_obs_ind + ph] + 1,
+	predictions_df$AE[predictions_df_row_ind] <- abs(predictions_df$prediction[predictions_df_row_ind] - Campy_test$case[last_obs_ind + ph])
+	predictions_df$log_score[predictions_df_row_ind] <- dlnorm(Campy_test$case[last_obs_ind + ph] + 1,
 		meanlog = predictive_log_mean,
 		sdlog = as.numeric(predict_result$se[ph]),
 		log = TRUE)
 	temp <- qlnorm(c(0.05, 0.25, 0.75, 0.95),
 		meanlog = predictive_log_mean,
 		sdlog = as.numeric(predict_result$se[ph]))
-	predictions_df[predictions_df_row_ind, c("predictive_95pct_lb", "predictive_80pct_lb", "predictive_80pct_ub", "predictive_95pct_ub")] <-
+	predictions_df[predictions_df_row_ind, c("predictive_95pct_lb", "predictive_50pct_lb", "predictive_50pct_ub", "predictive_95pct_ub")] <-
 		temp - 1
 	print(predictions_df_row_ind)
 }
 
-#predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_test$week_start_date[San_Juan_test$season %in% c("2010,2011")], ]
+#predictions_df <- predictions_df[predictions_df$week_start_date %in% Campy_test$week_start_date[Campy_test$season %in% c("2010,2011")], ]
 
 predictions_df$ph <- as.factor(predictions_df$ph)
 
 sarima_predictions_df <- predictions_df
-save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy.Rdata")
+save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
 
-predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
+#predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
+pred <- Campy_test[419:522,]
+
 
 w1 <- predictions_df$prediction[predictions_df$ph==1]
 u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
 l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
+u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]
+l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
 par(mfrow=c(1,1))
-plot(pred$date,pred$case, type="l", xlab= "time [years]",ylab="Campylobacteriosis Cases", main ="Predicted vs Actual Campylobacteriosis Cases")
-points(pred$date,w1,type="l", col="blue")
+plot(pred$date,w1, type="l", xlab= "time [years]",ylab="Campylobacteriosis Cases", main ="Predicted vs Actual Campylobacteriosis Cases (1,1,1) (1,0,0)",
+     col="blue")
+points(pred$date,pred$case,type="l", col="black")
+points(pred$date,l95,type="l", col="grey")
+points(pred$date,u95,type="l", col="grey")
+points(pred$date,l50,type="l", col="grey")
+points(pred$date,u50,type="l", col="grey")
 
 library(ggplot2)
 ggplot() +
@@ -178,7 +177,11 @@ ggplot() +
   ylab("Campylobacteriosis Cases")+
   xlab("Week")
 
-pred <- San_Juan_test[419:522,]
-sqrt(mean((pred$case-w1)^2,na.rm=T))/sqrt(mean((w1)^2))
 
+sqrt(mean((pred$case-w1)^2,na.rm=T))/sqrt(mean((w1)^2))
+t<- data.frame(w1,u95,l95,pred$case)
+t <- t%>%
+  mutate(CI_cov = between(pred$case,l95,u95))
+summary(t$CI_cov)
+27/104
 updated_sj_log_sarima_fit$var.coef <- matrix(1, nrow = 8, ncol = 8)

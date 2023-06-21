@@ -280,7 +280,13 @@ addlag <- function(df, i) {
 #    test <- addlag(test,v)
 #  }
 #}
-
+lag_matrix<-c()
+for (i in 1:20 ){
+  temp <- Bauchi$Cases
+  #lag_matrix<- c(lag_matrix,lag(Cases, n=i))
+  lag_matrix <- rbind(lag_matrix,lag(Cases, n=i))
+}
+lag_matrix <- t(lag_matrix)
 {
 Bauchi <- Bauchi%>%
   mutate(Cases01 = lag(Cases, n=1))
