@@ -2,7 +2,7 @@ setwd("~/Doks/Uni/Epidemiologie/Master Thesis/Thesis-Code/Data")
 Iquitos <- read.csv("../Data/Iquitos_total2.csv")
 
 library(mgcv)
-form <- as.formula("total_cases ~s(total_cases1,k=4)+s(DTR3,k=4)+s(precipitation_amount3,k=4)+s(relative_humidity3,k=4)")
+form <- as.formula("total_cases ~s(total_cases1)+s(relative_humidity3)+s(DTR3)+s(precipitation_amount3)")
 #form <- as.formula("total_cases ~ s(total_cases,k=4)+s(total_cases1,k=4)+s(precipitation_amount5,k=4)+s(specific_humidity5,k=4)")
 
 training <- Iquitos[1:364,]
@@ -25,7 +25,7 @@ detach(training)
 f.total <- Iquitos
 ### testing
 attach(f.total)
-preddata <- data.frame(total_cases,total_cases1,precipitation_amount3,relative_humidity3,DTR3)
+preddata <- data.frame(total_cases,specific_humidity3,total_cases1,precipitation_amount3,relative_humidity3,DTR3)
 f.total$predict<-predict(mod.train, type="response", newdata=as.data.frame(preddata))
 pred <-predict(mod.train, type="response", newdata=as.data.frame(preddata),se.fit = T)
 #####
@@ -44,10 +44,16 @@ par(mfrow=c(1,1))
 plot(f.total$total_cases, type="l",ylab="Dengue Cases", xlab="week",
      main="Observed vs. Predicted Dengue Cases")
 points(train$predict,type="l", col="red")
-plot(365:468,pred$predict,type="l", col="blue")
+points(365:468,pred$predict,type="l", col="blue")
 points(365:468,preddata$upper, type="l", col="grey")
 points(365:468,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
+### Plot predictions
+plot(365:468,pred$total_cases, type="l",ylab="Dengue Cases", xlab="week", ylim=c(0,max(pred$predict)),
+     main="Observed vs. Predicted Dengue Cases")
+points(365:468,pred$predict,type="l", col="blue")
+points(365:468,preddata$upper, type="l", col="grey")
+points(365:468,preddata$lower,type="l", col="grey")
 
 #for training data
 sqrt(mean((train$total_cases-train$predict)^2,na.rm=T))/sqrt(mean((train$total_cases)^2))
@@ -58,4 +64,4 @@ sqrt(mean((pred$total_cases-pred$predict)^2,na.rm=T))/sqrt(mean((pred$total_case
 preddata <- preddata%>%
   mutate(CI_cov = between(total_cases,lower,upper))
 summary(preddata$CI_cov)
-23/104
+25/104

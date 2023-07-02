@@ -7,9 +7,9 @@ Bauchi <- read.csv("Bauchi_Complete.csv")
 
 
 library(mgcv)
-form <- as.formula("Cases ~ s(Cases01)+s(temperature01)+s(mm17)+s(avg_hum13)")
+form <- as.formula("Cases ~ s(Cases01) + s(temperature01) + s(mm17) + s(avg_hum13)")
 
-training <- Bauchi[1:261,]
+training <- Bauchi[53:261,]
 
 attach(training)
 mod.train <- mgcv::gam(form, family=quasipoisson, na.action=na.exclude, data=training)
@@ -26,7 +26,7 @@ sqrt(mean((training$Cases-p)^2,na.rm=T))
 sqrt(mean((training$Cases-p)^2,na.rm=T))/sqrt(mean((training$Cases)^2))
 detach(training)
 
-f.total <- Bauchi
+f.total <- Bauchi[53:313,]
 ### testing
 attach(f.total)
 preddata <- data.frame(Cases,Cases01,temperature01,mm17,avg_hum13)
@@ -43,9 +43,9 @@ preddata <- transform(preddata,
 #pr <- subset(preddata,year>2010)
 #######
 p <- f.total$predict
-train <- f.total[1:261,]
-pred <- f.total[262:313,]
-preddata <- preddata[262:313,]
+train <- f.total[1:209,]
+pred <- f.total[210:261,]
+preddata <- preddata[210:261,]
 #predcase <- pred%>%
 #  select(Cases)
 #preddat <- merge(preddata, predcase, by="row.names")
@@ -54,11 +54,16 @@ par(mfrow=c(1,1))
 plot(f.total$Cases, type="l", ylab="Measles Cases", xlab="week",
      main="Observed vs. Predicted Measles Cases")
 points(train$p,type="l", col="red")
-points(262:313,preddata$fitted,type="l", col="blue")
-points(262:313,preddata$upper, type="l", col="grey")
-points(262:313,preddata$lower,type="l", col="grey")
+points(210:261,preddata$fitted,type="l", col="blue")
+points(210:261,preddata$upper, type="l", col="grey")
+points(210:261,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
-
+### Plot predictions
+plot(pred$Cases, type="l",ylab="Measles Cases", xlab="week",
+     main="Observed vs. Predicted Measles Cases")
+points(pred$predict,type="l", col="blue")
+points(preddata$upper, type="l", col="grey")
+points(preddata$lower,type="l", col="grey")
 #for training data
 sqrt(mean((train$Cases-train$p)^2,na.rm=T))/sqrt(mean((train$Cases)^2))
 #for validation data 2011-2013
@@ -68,4 +73,4 @@ sqrt(mean((pred$Cases-pred$p)^2,na.rm=T))/sqrt(mean((pred$Cases)^2))
 preddata <- preddata%>%
   mutate(CI_cov2 = between(Cases01,lower,upper))
 summary(preddata$CI_cov2)
-38/52
+39/52

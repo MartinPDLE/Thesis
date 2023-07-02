@@ -51,17 +51,23 @@ preddata <- transform(preddata,
 
 p <- f.total$predict
 train <- f.total[1:418,]
-pred <- f.total[418:522,]
-preddata <- preddata[418:522,]
+pred <- f.total[419:522,]
+preddata <- preddata[419:522,]
 
 par(mfrow=c(1,1))
 plot(f.total$case, type="l", ylab="Camplylobacteriosis Cases", xlab="week",
      main="Observed vs. Predicted Campylobacteriosis Cases")
 points(train$p,type="l", col="red")
-points(418:522,pred$p,type="l", col="blue")
-points(418:522,preddata$upper, type="l", col="grey")
-points(418:522,preddata$lower,type="l", col="grey")
+points(419:522,pred$p,type="l", col="blue")
+points(419:522,preddata$upper, type="l", col="grey")
+points(419:522,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
+#### Plot Predictions
+plot(419:522,pred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="week", ylim=c(0,max(pred$predict)),
+     main="Observed vs. Predicted Camplylobacteriosis Cases")
+points(419:522,pred$predict,type="l", col="blue")
+points(419:522,preddata$upper, type="l", col="grey")
+points(419:522,preddata$lower,type="l", col="grey")
 
 #for training data
 sqrt(mean((train$case-train$p)^2,na.rm=T))/sqrt(mean((train$case)^2))

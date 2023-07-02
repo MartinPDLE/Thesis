@@ -45,8 +45,8 @@ hum <- data.frame(hum, l1.hum, l2.hum, l3.hum, l4.hum,l5.hum,l6.hum,l7.hum,l8.hu
                   l10.hum, l11.hum,l12.hum, l13.hum, l14.hum,l15.hum,l16.hum,l17.hum,l18.hum,
                   l19.hum, l20.hum)
 cor(case, hum, method="spearman", use="pairwise.complete.obs")
-plot(lag, as.numeric(cor(case, hum, method="spearman", use="pairwise.complete.obs")), ylab="Correlation coefficient", xlab="Lag of weekly adj. relative humidity")          
-title(main="Campylobacteriosis cases vs. humidity")
+plot(lag, as.numeric(cor(case, hum, method="spearman", use="pairwise.complete.obs")), ylab="Correlation coefficient", xlab="Lag of weekly mean absolute humidity")          
+title(main="Campylobacteriosis cases vs. mean absolute humidity")
 
 case_c <- data.frame(case,case1,case2,case3,case4,case5)
 cor(case, case_c, method="spearman", use="pairwise.complete.obs")
