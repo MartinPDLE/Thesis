@@ -59,11 +59,14 @@ points(210:261,preddata$upper, type="l", col="grey")
 points(210:261,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 ### Plot predictions
-plot(pred$Cases, type="l",ylab="Measles Cases", xlab="week",
-     main="Observed vs. Predicted Measles Cases")
-points(pred$predict,type="l", col="blue")
-points(preddata$upper, type="l", col="grey")
-points(preddata$lower,type="l", col="grey")
+plot(262:313,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
+     main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
+polygon(x=c(262:313,rev(262:313)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
+points(262:313,pred$predict,type="l",col="white", lwd=1.5)
+#points(preddata$lower,type="l", col="grey")
+###
+
+
 #for training data
 sqrt(mean((train$Cases-train$p)^2,na.rm=T))/sqrt(mean((train$Cases)^2))
 #for validation data 2011-2013

@@ -23,12 +23,14 @@ campyDE$date <- as.Date(campyDE$date)
         
         prediction_target_var <- "case"
         log_prediction_target <- data[, prediction_target_var]
+        xreg <- data$hum
         #log_prediction_target <- log(data[, prediction_target_var])
         
         #seasonally_differenced_log_prediction_target <-
          # ts(log_prediction_target[seq(from = 53, to = length(log_prediction_target))] -
         #       log_prediction_target[seq(from = 1, to = length(log_prediction_target) - 52)],
         #     frequency = 52)
+        xreg1 <- Campy_test$hum[418:(418+4)]
         
         nnetar_fit <- 
           #Arima(seasonally_differenced_log_prediction_target, order = c(1,1,1), seasonal = list(order=c(1,0,0),period = 53), 
@@ -36,9 +38,10 @@ campyDE$date <- as.Date(campyDE$date)
           #      include.mean = F)
           nnetar(log_prediction_target,p=1,P=1,size=2)
         
-        #nnetar_for <- forecast(nnetar_fit,h=4)
+        nnetar_for <- forecast(nnetar_fit,h=4, xreg = xreg1)
         
         summary(nnetar_fit)
+        plot(Campy_test$case[419:422],type="l")
         
         
         ## Restrict to data from 1990/1991 through 2008/2009 seasons
@@ -56,7 +59,7 @@ campyDE$date <- as.Date(campyDE$date)
 predictions_df <- data.frame(ph=rep(seq_len(52), times = 2 * 52),
 	last_obs_season=rep(c("2010", "2011"), each = 52, times = 52),
 	last_obs_week=rep(seq_len(52) - 1, each = 52 * 2),
-	model="sarima",
+	model="nnetar",
 	stringsAsFactors=FALSE)
 predictions_df$prediction_season <- predictions_df$last_obs_season
 predictions_df$prediction_week <- predictions_df$last_obs_week + predictions_df$ph
@@ -89,7 +92,7 @@ predictions_df$predictive_80pct_lb <- NA
 predictions_df$predictive_80pct_ub <- NA
 predictions_df$predictive_95pct_lb <- NA
 predictions_df$predictive_95pct_ub <- NA
-predictions_df$week_start_date <- Campy_test$week_start_date[1]
+predictions_df$week_start_date <- Campy_test$date[1]
 
 
 
@@ -97,14 +100,14 @@ predictions_df$week_start_date <- Campy_test$week_start_date[1]
 #sj_log_sarima_fit <- sj_log_sarima_fit_manual2  ## quite bad
 #sj_log_sarima_fit <- sj_log_sarima_fit_manual3  ## very bad
 
-sarima_inds <- which(predictions_df$model == "sarima")
+sarima_inds <- which(predictions_df$model == "nnetar")
 #sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
 	last_obs_ind <- which(Campy_test$Year == predictions_df$last_obs_season[predictions_df_row_ind] &
 		Campy_test$season_week == predictions_df$last_obs_week[predictions_df_row_ind])
 	
-	predictions_df$week_start_date[predictions_df_row_ind] <- Campy_test$week_start_date[last_obs_ind + as.numeric(ph)]
+	predictions_df$week_start_date[predictions_df_row_ind] <- Campy_test$date[last_obs_ind + as.numeric(ph)]
 	
 	
 	new_data <- ts((Campy_test$case[seq_len(last_obs_ind)]), frequency = 52)
@@ -141,6 +144,8 @@ for(predictions_df_row_ind in sarima_inds) {
 	print(predictions_df_row_ind)
 }
 
+plot(updated_sj_log_sarima_fit$fitted,type="l")
+points(Campy_test$case,type="l",col="red")
 #predictions_df <- predictions_df[predictions_df$week_start_date %in% Campy_test$week_start_date[Campy_test$season %in% c("2010,2011")], ]
 
 predictions_df$ph <- as.factor(predictions_df$ph)
@@ -152,7 +157,7 @@ save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/s
 pred <- Campy_test[419:522,]
 
 
-w1 <- predictions_df$prediction[predictions_df$ph==1]
+w1 <- predictions_df$prediction[predictions_df$ph==12]
 u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
 l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
 u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]

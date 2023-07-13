@@ -63,11 +63,11 @@ points(419:522,preddata$upper, type="l", col="grey")
 points(419:522,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 #### Plot Predictions
-plot(419:522,pred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="week", ylim=c(0,max(pred$predict)),
-     main="Observed vs. Predicted Camplylobacteriosis Cases")
-points(419:522,pred$predict,type="l", col="blue")
-points(419:522,preddata$upper, type="l", col="grey")
-points(419:522,preddata$lower,type="l", col="grey")
+plot(419:522,pred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="week",
+     main="Observed vs. Predicted Camplylobacteriosis Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
+points(x=c(419:522,rev(419:522)),y=c(preddata$upper,rev(preddata$upper)), type="l",col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
+points(419:522,pred$predict,type="l", col="white",lwd=1.5)
+#points(419:522,preddata$lower,type="l", col="grey")
 
 #for training data
 sqrt(mean((train$case-train$p)^2,na.rm=T))/sqrt(mean((train$case)^2))
