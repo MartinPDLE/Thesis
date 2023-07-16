@@ -1,9 +1,12 @@
-setwd("~/Doks/Uni/Epidemiologie/Master Thesis/Thesis-Code/Data")
+setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Data")
 library(surveillance)
 library(dplyr)
 library(mgcv)
 
 Bauchi <- read.csv("Bauchi_Complete.csv")
+Bauchi$Date<-lubridate::ymd( "2012-01-01" ) + lubridate::weeks( Bauchi$week - 1 )+lubridate::years(Bauchi$year - 2012)
+Bauchi$Date <- ymd(Bauchi$Date)
+Bauchi$Date <- as.Date(Bauchi$Date)
 
 
 library(mgcv)
@@ -46,6 +49,8 @@ p <- f.total$predict
 train <- f.total[1:209,]
 pred <- f.total[210:261,]
 preddata <- preddata[210:261,]
+timepoints <- 210:261
+
 #predcase <- pred%>%
 #  select(Cases)
 #preddat <- merge(preddata, predcase, by="row.names")
@@ -54,15 +59,19 @@ par(mfrow=c(1,1))
 plot(f.total$Cases, type="l", ylab="Measles Cases", xlab="week",
      main="Observed vs. Predicted Measles Cases")
 points(train$p,type="l", col="red")
-points(210:261,preddata$fitted,type="l", col="blue")
-points(210:261,preddata$upper, type="l", col="grey")
-points(210:261,preddata$lower,type="l", col="grey")
+points(timepoints,preddata$fitted,type="l", col="blue")
+points(timepoints,preddata$upper, type="l", col="grey")
+points(timepoints,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 ### Plot predictions
-plot(262:313,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
+plot(timepoints+52,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
      main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-polygon(x=c(262:313,rev(262:313)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
-points(262:313,pred$predict,type="l",col="white", lwd=1.5)
+polygon(x=c(timepoints+52,rev(timepoints+52)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
+points(timepoints+52,pred$predict,type="l",col="white", lwd=1.5)
+plot(pred$Date,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
+     main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
+polygon(x=c(timepoints+52,rev(timepoints+52)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
+points(timepoints+52,pred$predict,type="l",col="white", lwd=1.5)
 #points(preddata$lower,type="l", col="grey")
 ###
 

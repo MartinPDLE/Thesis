@@ -17,6 +17,8 @@ campyDE$date <- as.Date(campyDE$date)
           select(-c(Month,Day))
         data$season_week <- row_number(data$date) %% 52
         data$season_week[data$season_week==0] <- 52
+        data <- data%>%
+          mutate(season_week = epiweek(date))
         
         Campy_test <- data
         data <- data[data$Year <= 2009, , drop = FALSE]
@@ -145,7 +147,7 @@ for(predictions_df_row_ind in sarima_inds) {
 predictions_df$ph <- as.factor(predictions_df$ph)
 
 sarima_predictions_df <- predictions_df
-save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
+#save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
 
 #predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 pred <- Campy_test[419:522,]
@@ -178,7 +180,7 @@ ggplot() +
   xlab("Week")
 
 
-sqrt(mean((pred$case-w1)^2,na.rm=T))/sqrt(mean((w1)^2))
+sqrt(mean((pred$case-w1)^2,na.rm=T))/sqrt(mean((pred$case)^2))
 t<- data.frame(w1,u95,l95,pred$case)
 t <- t%>%
   mutate(CI_cov = between(pred$case,l95,u95))

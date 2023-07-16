@@ -1,4 +1,4 @@
-setwd("~/Doks/Uni/Epidemiologie/Master Thesis/Thesis-Code/Data")
+setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Data")
 library(surveillance)
 library(dplyr)
 
@@ -53,20 +53,22 @@ p <- f.total$predict
 train <- f.total[1:418,]
 pred <- f.total[419:522,]
 preddata <- preddata[419:522,]
+timepoints <- 419:522
+
 
 par(mfrow=c(1,1))
 plot(f.total$case, type="l", ylab="Camplylobacteriosis Cases", xlab="week",
      main="Observed vs. Predicted Campylobacteriosis Cases")
 points(train$p,type="l", col="red")
-points(419:522,pred$p,type="l", col="blue")
-points(419:522,preddata$upper, type="l", col="grey")
-points(419:522,preddata$lower,type="l", col="grey")
+points(timepoints,pred$p,type="l", col="blue")
+points(timepoints,preddata$upper, type="l", col="grey")
+points(timepoints,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 #### Plot Predictions
-plot(419:522,pred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="week",
+plot(timepointspred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="week",
      main="Observed vs. Predicted Camplylobacteriosis Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-points(x=c(419:522,rev(419:522)),y=c(preddata$upper,rev(preddata$upper)), type="l",col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
-points(419:522,pred$predict,type="l", col="white",lwd=1.5)
+points(x=c(timepoints,rev(timepoints),y=c(preddata$upper,rev(preddata$upper)), type="l",col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1)))
+points(timepoints,pred$predict,type="l", col="white",lwd=1.5)
 #points(419:522,preddata$lower,type="l", col="grey")
 
 #for training data

@@ -1,6 +1,7 @@
 library(lubridate)
 library(forecast)
 library(dplyr)
+setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/article-disease-pred-with-kcde/inst/code/estimation")
 
         data <- read.csv("../../../data-raw/Iquitos_total.csv")
         
@@ -40,10 +41,10 @@ library(dplyr)
                 log_prediction_target[seq(from = 1, to = length(log_prediction_target) - 52)],
             frequency = 52)
     
-    seasonally_differenced_log_sarima_fit <-Arima(seasonally_differenced_log_prediction_target, order = c(3,0,2), seasonal = list(order=c(1,1,0),period = 52), 
-            method = "CSS", optim.method = "BFGS",
-            include.mean = F)
-        #auto.arima(seasonally_differenced_log_prediction_target, xreg = NULL)
+    seasonally_differenced_log_sarima_fit <-#Arima(seasonally_differenced_log_prediction_target, order = c(3,0,2), seasonal = list(order=c(1,1,0),period = 52), 
+            #method = "CSS", optim.method = "BFGS",
+            #include.mean = F)
+        auto.arima(seasonally_differenced_log_prediction_target, xreg = NULL)
     summary(seasonally_differenced_log_sarima_fit)
     #302 110
 
@@ -143,7 +144,9 @@ for(predictions_df_row_ind in sarima_inds) {
 predictions_df$ph <- as.factor(predictions_df$ph)
 
 sarima_predictions_df <- predictions_df
-save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_iq_302_110.Rdata")
+save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_iq_011_100.Rdata")
+load("../../results/dengue_sj/prediction-results/sarima-predictions_iq_011_100.Rdata")
+predictions_df <- sarima_predictions_df
 
 predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 w1 <- predictions_df$prediction[predictions_df$ph==1]
@@ -156,23 +159,30 @@ l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
 
 par(mfrow=c(1,1))
-plot(pred$date,pred$total_cases, type="l",ylim=c(-3,100), xlab= "time [years]",ylab="Dengue Cases", main ="Predicted vs Actual Dengue Cases")
-points(pred$date,w1,type="l", col="blue")
-points(pred$date,pred$case,type="l", col="black")
-points(pred$date,l95,type="l", col="grey")
-points(pred$date,u95,type="l", col="grey")
+plot(pred$date,pred$total_cases, type="l",lwd=1.5, xlab= "time [years]",ylab="Dengue Cases", main ="Predicted vs Actual Dengue Cases",col="white")
+polygon(x=c(pred$date,rev(pred$date)),y=c(u95,rev(l95)), col = rgb(0, 0, 1, alpha = 0.5), border = rgb(0, 0, 1, alpha = 0.1))
+points(pred$date,w1,type="l", col="blue",lwd=1.5)
+points(pred$date,pred$total_cases, pch=16,cex=0.5)
+#points(pred$date,pred$case,type="l", col="black")
+#points(pred$date,l95,type="l", col="grey")
+#points(pred$date,u95,type="l", col="grey")
 
-library(ggplot2)
-ggplot() +
-	geom_line(aes(x = 1:468, y = total_cases, group=1), data = San_Juan_test) +
-	geom_line(aes(x = 365:468, y = w1, colour = ph), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
-	theme_bw()+
-  ggtitle("Sarima Prediction of Dengue Cases with Seasonal Differencing")+
-  ylab("Dengue Cases")+
-  xlab("Week")
+plot(timepoints+52,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
+     main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
+polygon(x=c(timepoints+52,rev(timepoints+52)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
+points(timepoints+52,pred$predict,type="l",col="white", lwd=1.5)
+
+#library(ggplot2)
+#ggplot() +
+#	geom_line(aes(x = 1:468, y = total_cases, group=1), data = San_Juan_test) +
+#	geom_line(aes(x = 365:468, y = w1, colour = ph), data = predictions_df[predictions_df$ph %in% 1, , drop = FALSE]) +
+#	theme_bw()+
+#  ggtitle("Sarima Prediction of Dengue Cases with Seasonal Differencing")+
+#  ylab("Dengue Cases")+
+#  xlab("Week")
 
 
-sqrt(mean((pred$total_cases-w1)^2,na.rm=T))#/sqrt(mean((w1)^2))
+sqrt(mean((pred$total_cases-w1)^2,na.rm=T))#/sqrt(mean((total_cases)^2))
 t<- data.frame(w1,u95,l95,pred$total_cases)
 t <- t%>%
   mutate(CI_cov = between(pred$total_cases,l95,u95))

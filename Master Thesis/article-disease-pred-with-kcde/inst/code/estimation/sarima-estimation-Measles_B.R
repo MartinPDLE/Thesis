@@ -198,7 +198,7 @@ ggplot() +
   xlab("Week")
 
 
-sqrt(mean((pred$Cases-w1)^2,na.rm=T))#/sqrt(mean((w1)^2))
+sqrt(mean((pred$Cases-w1)^2,na.rm=T))#/sqrt(mean((pred$Cases)^2))
 t<- data.frame(w1,u95,l95,pred$Cases)
 t <- t%>%
   mutate(CI_cov = between(pred.Cases,l95,u95))
