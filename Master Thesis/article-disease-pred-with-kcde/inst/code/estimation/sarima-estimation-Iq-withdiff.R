@@ -41,10 +41,10 @@ setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/article-d
                 log_prediction_target[seq(from = 1, to = length(log_prediction_target) - 52)],
             frequency = 52)
     
-    seasonally_differenced_log_sarima_fit <-#Arima(seasonally_differenced_log_prediction_target, order = c(3,0,2), seasonal = list(order=c(1,1,0),period = 52), 
-            #method = "CSS", optim.method = "BFGS",
-            #include.mean = F)
-        auto.arima(seasonally_differenced_log_prediction_target, xreg = NULL)
+    seasonally_differenced_log_sarima_fit <-Arima(seasonally_differenced_log_prediction_target, order = c(0,1,1), seasonal = list(order=c(1,0,0),period = 52), 
+            method = "CSS", optim.method = "BFGS",
+            include.mean = F)
+        #auto.arima(seasonally_differenced_log_prediction_target, xreg = NULL)
     summary(seasonally_differenced_log_sarima_fit)
     #302 110
 
@@ -94,6 +94,7 @@ predictions_df$week_start_date <- San_Juan_test$week_start_date[1]
 #sj_log_sarima_fit <- sj_log_sarima_fit_manual3  ## very bad
 
 sarima_inds <- which(predictions_df$model == "sarima")
+start_time <- Sys.time()
 #sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
@@ -138,6 +139,8 @@ for(predictions_df_row_ind in sarima_inds) {
 		temp - 1
 	print(predictions_df_row_ind)
 }
+end_time <- Sys.time()
+end_time - start_time
 
 #predictions_df <- predictions_df[predictions_df$week_start_date %in% San_Juan_test$week_start_date[San_Juan_test$season %in% c("2007/2008", "2008/2009")], ]
 
@@ -157,20 +160,25 @@ l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
 u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]
 l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
-
-par(mfrow=c(1,1))
-plot(pred$date,pred$total_cases, type="l",lwd=1.5, xlab= "time [years]",ylab="Dengue Cases", main ="Predicted vs Actual Dengue Cases",col="white")
-polygon(x=c(pred$date,rev(pred$date)),y=c(u95,rev(l95)), col = rgb(0, 0, 1, alpha = 0.5), border = rgb(0, 0, 1, alpha = 0.1))
-points(pred$date,w1,type="l", col="blue",lwd=1.5)
-points(pred$date,pred$total_cases, pch=16,cex=0.5)
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds//Final/Sarima Dengue.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(pred$date,pred$total_cases,type="l", ylab ="Dengue Cases", xlab= "time",lwd=1.5,ylim = c(0,max(w1)), cex.lab=1.2)
+polygon(x=c(pred$date,rev(pred$date)),y=c(u95,rev(l95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+#polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
+points(pred$date,w1, type = "l", col="blue", lwd=1.5)
+abline(v=seq(as.Date("2007-07-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2007-07-01"), by="+6 month", length.out=5),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "prediction","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 #points(pred$date,pred$case,type="l", col="black")
 #points(pred$date,l95,type="l", col="grey")
 #points(pred$date,u95,type="l", col="grey")
 
-plot(timepoints+52,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
-     main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-polygon(x=c(timepoints+52,rev(timepoints+52)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
-points(timepoints+52,pred$predict,type="l",col="white", lwd=1.5)
+
 
 #library(ggplot2)
 #ggplot() +

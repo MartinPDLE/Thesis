@@ -2,18 +2,12 @@ setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Data")
 library(surveillance)
 library(dplyr)
 
-campyDE <- read.csv("campyDE.csv")
-
+campyDE <- read.csv("campyDE_2.csv")
+data("campyDE")
 campyDE <- campyDE%>%
   mutate(case1 = lag(case, n=1))
-campyDE <- campyDE%>%
-  mutate(case2 = lag(case, n=2))
-campyDE <- campyDE%>%
-  mutate(case3 = lag(case, n=3))
-campyDE <- campyDE%>%
-  mutate(case4 = lag(case, n=4))
-campyDE <- campyDE%>%
-  mutate(case5 = lag(case, n=5))
+
+campyDE$date <- as.Date(campyDE$date)
 
 
 library(mgcv)
@@ -65,10 +59,19 @@ points(timepoints,preddata$upper, type="l", col="grey")
 points(timepoints,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 #### Plot Predictions
-plot(timepointspred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="week",
-     main="Observed vs. Predicted Camplylobacteriosis Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-points(x=c(timepoints,rev(timepoints),y=c(preddata$upper,rev(preddata$upper)), type="l",col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1)))
-points(timepoints,pred$predict,type="l", col="white",lwd=1.5)
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/Gam Campy.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(pred$date,pred$case, type="l",ylab="Camplylobacteriosis Cases", xlab="time",lwd=1.5,ylim = c(0,max(preddata$upper)), cex.lab=1.2)
+polygon(x=c(pred$date,rev(pred$date)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+points(pred$date,pred$predict,type="l", col="blue",lwd=1.5)
+abline(v=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "prediction","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 #points(419:522,preddata$lower,type="l", col="grey")
 
 #for training data

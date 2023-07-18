@@ -52,35 +52,45 @@ p3m <- left_join(p3m,Bauchi,by="prediction_time")
 #plot(1:522,campyDE$case, type="l", ylab ="Campylobacteriosis Cases", xlab= "Week",main= "Predicted vs Actual Campylobacteriosis Cases")
 #plot(1:521,p1$obs, type="l", ylab ="Campylobacteriosis Cases", xlab= "Week")
 #plot(1:468,Iquitos$total_cases, type="l", ylab ="Dengue Cases", xlab= "Week", main= "Predicted vs Actual Dengue Cases")
-plot(p3m$Date,p3m$obs, type="l", ylab ="Measles Cases", xlab= "Week",main= "Predicted vs Measles Cases",lwd=1.5, ylim = c(0,max(p3m$ub95)))
-polygon(x=c(p3m$Date,rev(p3m$Date)),y=c(p3m$ub95,rev(p3m$lb95)),col = rgb(1, 0, 0, alpha = 0.3), border = rgb(1, 0, 0, alpha = 1))
-polygon(x=c(p3m$Date,rev(p3m$Date)),y=c(p3m$ub50,rev(p3m$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
-points(p3m$Date,p3m$pred_mean, type = "l", col="white", lwd=2)
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/EE Measles.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(p3m$Date,p3m$obs, type="l", ylab ="Measles Cases", xlab= "time",lwd=1.5, ylim = c(0,max(p3m$ub95)), cex.lab=1.2)
+polygon(x=c(p3m$Date,rev(p3m$Date)),y=c(p3m$ub95,rev(p3m$lb95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+#polygon(x=c(p3m$Date,rev(p3m$Date)),y=c(p3m$ub50,rev(p3m$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
+points(p3m$Date,p3m$pred_mean, type = "l", col="blue", lwd=1.5)
+abline(v=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "pred.mean","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 #####
 #plot((4*52):(5*52-1),p3m$obs, type="l", ylab ="Measles Cases", xlab= "Week",main= "Predicted vs Measles Cases",lwd=1.5, ylim = c(0,max(p3m$ub95)))
 #polygon(x=c((4*52):(5*52-1),rev((4*52):(5*52-1))),y=c(p3m$ub95,rev(p3m$lb95)),col = rgb(1, 0, 0, alpha = 0.3), border = rgb(1, 0, 0, alpha = 1))
 #polygon(x=c((4*52):(5*52-1),rev((4*52):(5*52-1))),y=c(p3m$ub50,rev(p3m$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
 #points((4*52):(5*52-1),p3m$pred_mean, type = "l", col="white", lwd=2)
 ####
-legend("topright",
-       legend = c("95% PI", "50% PI", "pred.mean"),box.col="black",
-       col = c( rgb(1, 0, 0, alpha = 0.3),
-                rgb(1, 0, 0, alpha = 0.5),
-                "white"), pch = c(15, 15, 0), bty = "n")
+
 ####
-#plot(p3c$date,p3c$obs, type="l", ylab ="Campylobacteriosis Cases", xlab= "time [years]",
-#     lwd=1.5,ylim = c(0,max(p3c$ub95)))
-plot(p3c$date,p3c$obs, ylab ="Campylobacteriosis Cases", xlab= "time [years]",
-     pch=16,cex=0.5,ylim = c(0,max(p3c$ub95)))
-polygon(x=c(p3c$date,rev(p3c$date)),y=c(p3c$ub95,rev(p3c$lb95)),col = rgb(0, 0, 1, alpha = 0.4), border = rgb(0, 0, 1, alpha = 1))
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/EE Campy.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(p3c$date,p3c$obs, type="l", ylab ="Campylobacteriosis Cases", xlab= "time",
+     lwd=1.5,ylim = c(0,max(p3c$ub95)),cex.lab=1.2)
+#plot(p3c$date,p3c$obs, ylab ="Campylobacteriosis Cases", xlab= "time [years]",
+#     pch=16,cex=0.5,ylim = c(0,max(p3c$ub95)))
+polygon(x=c(p3c$date,rev(p3c$date)),y=c(p3c$ub95,rev(p3c$lb95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
 #polygon(x=c(p3c$date,rev(p3c$date)),y=c(p3c$ub50,rev(p3c$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
 points(p3c$date,p3c$pred_mean, type = "l", col="blue", lwd=1.5)
-points(p3c$date,p3c$obs,pch=16,cex=0.5)
+abline(v=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
 legend("topleft",
        legend = c("95% PI", "pred.mean","obs.values"),
-       col = c( rgb(0, 0, 1, alpha = 0.4),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
                 "blue",
-                "black"), pch = c(15, 15, 15), bty = "n")
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 
 #plot((8*52):(10*52-1),p3c$obs, type="l", ylab ="Campylobacteriosis Cases", xlab= "Week",main= "Predicted vs Campylobacteriosis Cases",
 #     lwd=1.5,ylim = c(0,max(p3c$ub95)))
@@ -88,10 +98,20 @@ legend("topleft",
 #polygon(x=c((8*52):(10*52-1),rev((8*52):(10*52-1))),y=c(p3c$ub50,rev(p3c$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
 #points((8*52):(10*52-1),p3c$pred_mean, type = "l", col="white", lwd=1.5)
 ####
-plot(p3d$week_start_date,p3d$obs,type="l", ylab ="Dengue Cases", xlab= "Week",main= "Predicted vs Dengue Cases",lwd=1.5,ylim = c(0,max(p3d$ub95)))
-polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub95,rev(p3d$lb95)),col = rgb(1, 0, 0, alpha = 0.3), border = rgb(1, 0, 0, alpha = 0.3))
-polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
-points(p3d$week_start_date,p3d$pred_mean, type = "l", col="white", lwd=1.5)
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/EE Dengue.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(p3d$week_start_date,p3d$obs,type="l", ylab ="Dengue Cases", xlab= "time",lwd=1.5,ylim = c(0,max(p3d$ub95)),cex.lab=1.2)
+polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub95,rev(p3d$lb95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+#polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
+points(p3d$week_start_date,p3d$pred_mean, type = "l", col="blue", lwd=1.5)
+abline(v=seq(as.Date("2007-07-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2007-07-01"), by="+6 month", length.out=5),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "pred.mean","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 ####
 #plot((7*52):(9*52-1),p3d$obs,type="l", ylab ="Dengue Cases", xlab= "Week",main= "Predicted vs Dengue Cases",lwd=1.5,ylim = c(0,max(p3d$ub95)))
 #polygon(x=c((7*52):(9*52-1),rev((7*52):(9*52-1))),y=c(p3d$ub95,rev(p3d$lb95)),col = rgb(1, 0, 0, alpha = 0.3), border = rgb(1, 0, 0, alpha = 0.3))

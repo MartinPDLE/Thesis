@@ -3,10 +3,13 @@ library(forecast)
 library(dplyr)
 library(surveillance)
 library(tidyr)
-
+setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/article-disease-pred-with-kcde/inst/code/estimation")
 
         ## Load data
         data <- read.csv("../../../../Data/Bauchi_Complete.csv")
+        data$Date<-lubridate::ymd( "2012-01-01" ) + lubridate::weeks( data$week - 1 )+lubridate::years(data$year - 2012)
+        data$Date <- ymd(data$Date)
+        data$Date <- as.Date(data$Date)
         
         Bauchi_test <- data
         xreg <- data%>%
@@ -116,6 +119,7 @@ predictions_df$week_start_date <- Bauchi_test$week[1]
 #sj_log_sarima_fit <- sj_log_sarima_fit_manual3  ## very bad
 
 sarima_inds <- which(predictions_df$model == "sarima")
+start_time <- Sys.time()
 #sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
@@ -159,13 +163,16 @@ for(predictions_df_row_ind in sarima_inds) {
 		temp - 1
 	print(predictions_df_row_ind)
 }
-
+end_time <- Sys.time()
+end_time - start_time
 #predictions_df <- predictions_df[predictions_df$week_start_date %in% Bauchi_test$week_start_date[Bauchi_test$season %in% c("2010,2011")], ]
 
 predictions_df$ph <- as.factor(predictions_df$ph)
 
 sarima_predictions_df <- predictions_df
-save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_Meases_111_100.Rdata")
+#save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_Meases_111_100.Rdata")
+load("../../results/dengue_sj/prediction-results/sarima-predictions_Meases_Short_111_100.Rdata")
+predictions_df <- sarima_predictions_df
 
 predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 
@@ -178,13 +185,30 @@ u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]
 l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
 par(mfrow=c(1,1))
-plot(pred$week,w1, type="l", xlab= "time [week]",ylab="Measles Cases", main ="Predicted vs Actual Measles Cases (1,1,1) (1,0,0)",
+plot(pred$Date,w1, type="l", xlab= "time [week]",ylab="Measles Cases", main ="Predicted vs Actual Measles Cases (1,1,1) (1,0,0)",
      col="blue")
-points(pred$week,pred$Cases,type="l", col="black")
-points(pred$week,l95,type="l", col="grey")
-points(pred$week,u95,type="l", col="grey")
-points(pred$week,l50,type="l", col="grey")
-points(pred$week,u50,type="l", col="grey")
+points(pred$Date,pred$Cases,type="l", col="black")
+points(pred$Date,l95,type="l", col="grey")
+points(pred$Date,u95,type="l", col="grey")
+points(pred$Date,l50,type="l", col="grey")
+points(pred$Date,u50,type="l", col="grey")
+
+
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds//Final/Sarima Measles.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(pred$Date,pred$Cases,type="l", ylab ="Measles Cases", xlab= "time",lwd=1.5,ylim = c(0,max(w1)), cex.lab=1.2)
+polygon(x=c(pred$Date,rev(pred$Date)),y=c(u95,rev(l95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+#polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
+points(pred$Date,w1, type = "l", col="blue", lwd=1.5)
+abline(v=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "prediction","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
+
 
 library(ggplot2)
 ggplot() +

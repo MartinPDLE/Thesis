@@ -1,8 +1,11 @@
 setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Data")
 Iquitos <- read.csv("../Data/Iquitos_total2.csv")
+Iquitos$Date <- mdy(Iquitos$week_start_date)
+Iquitos$Date <- as.Date(Iquitos$Date)
 
 library(mgcv)
 form <- as.formula("total_cases ~s(total_cases1)+s(relative_humidity3)+s(DTR3)+s(precipitation_amount3)")
+#form <- as.formula("total_cases ~s(total_cases1)+s(specific_humidity3)")
 #form <- as.formula("total_cases ~ s(total_cases,k=4)+s(total_cases1,k=4)+s(precipitation_amount5,k=4)+s(specific_humidity5,k=4)")
 
 training <- Iquitos[1:364,]
@@ -52,10 +55,19 @@ points(timepoints,preddata$upper, type="l", col="grey")
 points(timepoints,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 ### Plot predictions
-plot(timepoints,pred$total_cases, type="l",ylab="Dengue Cases", xlab="week",
-     main="Observed vs. Predicted Dengue Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-polygon(x=c(timepoints,rev(timepoints)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
-points(timepoints,pred$predict,type="l", col="white",lwd=1.5)
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/Gam Dengue Full.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(pred$Date,pred$total_cases, type="l",ylab="Dengue Cases", xlab="time",lwd=1.5,ylim = c(0,max(pred$predict)), cex.lab=1.2)
+polygon(x=c(pred$Date,rev(pred$Date)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+points(pred$Date,pred$predict,type="l", col="blue",lwd=1.5)
+abline(v=seq(as.Date("2007-07-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2007-07-01"), by="+6 month", length.out=5),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "prediction","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 #points(365:468,preddata$lower,type="l", col="grey")
 
 #for training data
@@ -64,7 +76,7 @@ sqrt(mean((train$total_cases-train$predict)^2,na.rm=T))/sqrt(mean((train$total_c
 sqrt(mean((pred$total_cases-pred$predict)^2,na.rm=T))
 sqrt(mean((pred$total_cases-pred$predict)^2,na.rm=T))/sqrt(mean((pred$total_cases)^2))
 
-preddata <- preddata%>%
+  preddata <- preddata%>%
   mutate(CI_cov = between(total_cases,lower,upper))
 summary(preddata$CI_cov)
 25/104

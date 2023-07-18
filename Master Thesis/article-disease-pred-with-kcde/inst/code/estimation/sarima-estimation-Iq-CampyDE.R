@@ -4,6 +4,7 @@ library(dplyr)
 library(surveillance)
 library(tidyr)
 
+setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/article-disease-pred-with-kcde/inst/code/estimation")
 data(campyDE)
 
 campyDE$date <- as.Date(campyDE$date)
@@ -99,6 +100,7 @@ predictions_df$week_start_date <- Campy_test$week_start_date[1]
 #sj_log_sarima_fit <- sj_log_sarima_fit_manual3  ## very bad
 
 sarima_inds <- which(predictions_df$model == "sarima")
+start_time <- Sys.time()
 #sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
@@ -141,6 +143,8 @@ for(predictions_df_row_ind in sarima_inds) {
 		temp - 1
 	print(predictions_df_row_ind)
 }
+end_time <- Sys.time()
+end_time - start_time
 
 #predictions_df <- predictions_df[predictions_df$week_start_date %in% Campy_test$week_start_date[Campy_test$season %in% c("2010,2011")], ]
 
@@ -148,7 +152,8 @@ predictions_df$ph <- as.factor(predictions_df$ph)
 
 sarima_predictions_df <- predictions_df
 #save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
-
+load("../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
+predictions_df <- sarima_predictions_df
 #predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 pred <- Campy_test[419:522,]
 
@@ -167,6 +172,21 @@ points(pred$date,l95,type="l", col="grey")
 points(pred$date,u95,type="l", col="grey")
 points(pred$date,l50,type="l", col="grey")
 points(pred$date,u50,type="l", col="grey")
+
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/Sarima Campy.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(pred$date,pred$case,type="l", ylab ="Campylobacteriosis Cases", xlab= "time",lwd=1.5,ylim = c(0,max(u95)), cex.lab=1.2)
+polygon(x=c(pred$date,rev(pred$date)),y=c(u95,rev(l95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+#polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
+points(pred$date,w1, type = "l", col="blue", lwd=1.5)
+abline(v=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "prediction","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 
 library(ggplot2)
 ggplot() +

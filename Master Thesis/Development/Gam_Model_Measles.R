@@ -33,7 +33,10 @@ f.total <- Bauchi[53:313,]
 ### testing
 attach(f.total)
 preddata <- data.frame(Cases,Cases01,temperature01,mm17,avg_hum13)
+start_time <- Sys.time()
 f.total$predict<-predict(mod.train, type="response", newdata=as.data.frame(preddata))
+end_time <- Sys.time()
+end_time - start_time
 pred <-predict(mod.train, type="response", newdata=as.data.frame(preddata),se.fit = T)
 #####
 preddata <- transform(preddata, fitted = pred$fit)
@@ -64,14 +67,19 @@ points(timepoints,preddata$upper, type="l", col="grey")
 points(timepoints,preddata$lower,type="l", col="grey")
 abline(h=60, col = "gray60")
 ### Plot predictions
-plot(timepoints+52,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
-     main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-polygon(x=c(timepoints+52,rev(timepoints+52)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
-points(timepoints+52,pred$predict,type="l",col="white", lwd=1.5)
-plot(pred$Date,pred$Cases, type="l",ylab="Measles Cases", xlab="week",
-     main="Observed vs. Predicted Measles Cases",lwd=1.5,ylim = c(0,max(preddata$upper)))
-polygon(x=c(timepoints+52,rev(timepoints+52)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 0.1))
-points(timepoints+52,pred$predict,type="l",col="white", lwd=1.5)
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/Gam Measles.png', width=2000, height=1400, res=300,pointsize = 10)
+plot(pred$Date,pred$Cases, type="l",ylab="Measles Cases", xlab="time",lwd=1.5,ylim = c(0,max(preddata$upper)), cex.lab=1.2)
+polygon(x=c(pred$Date,rev(pred$Date)),y=c(preddata$upper,rev(preddata$lower)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
+points(pred$Date,pred$predict,type="l",col="blue", lwd=1.5)
+abline(v=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+legend("topleft",
+       legend = c("95% PI", "prediction","obs.values"),
+       col = c( rgb(0, 0, 1, alpha = 0.1),
+                "blue",
+                "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
+dev.off()
 #points(preddata$lower,type="l", col="grey")
 ###
 
