@@ -8,11 +8,14 @@ Bauchi$Date<-lubridate::ymd( "2012-01-01" ) + lubridate::weeks( Bauchi$week - 1 
 Bauchi$Date <- ymd(Bauchi$Date)
 Bauchi$Date <- as.Date(Bauchi$Date)
 
+#set cutoff date
+cutoff_l <- as.Date("2013-01-01")
+cutoff <- as.Date("2017-01-01")
 
 library(mgcv)
 form <- as.formula("Cases ~ s(Cases01)+s(temperature01) + s(mm17) + s(avg_hum13)")
 
-training <- Bauchi[53:261,]
+training <- Bauchi[Bauchi$Date >= cutoff_l & Bauchi$Date < cutoff,]
 
 attach(training)
 mod.train <- mgcv::gam(form, family=quasipoisson, na.action=na.exclude, data=training)
@@ -35,11 +38,12 @@ legend("topleft",
          "black"), pch = c(15, 15), bty = "n",cex = 1.2)
 dev.off()
 
+#RMSE and SRMSE for training data 
 sqrt(mean((training$Cases-p)^2,na.rm=T))
 sqrt(mean((training$Cases-p)^2,na.rm=T))/sqrt(mean((training$Cases)^2))
 detach(training)
 
-f.total <- Bauchi[53:313,]
+f.total <- Bauchi[Bauchi$Date >= cutoff_l,]
 ### testing
 attach(f.total)
 preddata <- data.frame(Cases,Cases01,temperature01,mm17,avg_hum13)
@@ -62,20 +66,12 @@ p <- f.total$predict
 train <- f.total[1:209,]
 pred <- f.total[210:261,]
 preddata <- preddata[210:261,]
-timepoints <- 210:261
 
-#predcase <- pred%>%
-#  select(Cases)
-#preddat <- merge(preddata, predcase, by="row.names")
+train <- f.total[Bauchi$Date < cutoff,]
+pred <- f.total[f.total$Date >= cutoff,]
+preddata <- preddata[f.total$Date >= cutoff,]
 
-par(mfrow=c(1,1))
-plot(f.total$Cases, type="l", ylab="Measles Cases", xlab="week",
-     main="Observed vs. Predicted Measles Cases")
-points(train$p,type="l", col="red")
-points(timepoints,preddata$fitted,type="l", col="blue")
-points(timepoints,preddata$upper, type="l", col="grey")
-points(timepoints,preddata$lower,type="l", col="grey")
-abline(h=60, col = "gray60")
+
 ### Plot predictions
 png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/Gam Measles.png', width=2000, height=1400, res=300,pointsize = 10)
 plot(pred$Date,pred$Cases, type="l",ylab="Measles Cases", xlab="time",lwd=1.5,ylim = c(0,max(preddata$upper)), cex.lab=1.2)
@@ -90,17 +86,16 @@ legend("topleft",
                 "blue",
                 "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
 dev.off()
-#points(preddata$lower,type="l", col="grey")
-###
 
 
-#for training data
-sqrt(mean((train$Cases-train$p)^2,na.rm=T))/sqrt(mean((train$Cases)^2))
-#for validation data 2011-2013
+
+
+#RMSE and SRMSE for validation data 
 sqrt(mean((pred$Cases-pred$p)^2,na.rm=T))
 sqrt(mean((pred$Cases-pred$p)^2,na.rm=T))/sqrt(mean((pred$Cases)^2))
-#
+
+#PI Coverage
 preddata <- preddata%>%
   mutate(CI_cov2 = between(Cases01,lower,upper))
 summary(preddata$CI_cov2)
-39/52
+

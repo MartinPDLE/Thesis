@@ -37,43 +37,14 @@ setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/article-d
                xmm[seq(from = 1, to = length(xmm) - 52)],
              frequency = 52)
         
-        seasonally_differenced_log_sarima_fit <- #auto.arima(seasonally_differenced_log_prediction_target)
-          Arima(seasonally_differenced_log_prediction_target, order = c(1,1,1), seasonal = list(order=c(1,0,0),period = 53), 
-                method = "CSS", optim.method = "BFGS",
-                include.mean = F)
-          
-          #auto.arima(seasonally_differenced_log_prediction_target)
+        seasonally_differenced_log_sarima_fit <- auto.arima(seasonally_differenced_log_prediction_target)
+          #Arima(seasonally_differenced_log_prediction_target, order = c(1,1,1), seasonal = list(order=c(1,0,0),period = 52), 
+          #      method = "CSS", optim.method = "BFGS",
+          #      include.mean = F)
         
         summary(seasonally_differenced_log_sarima_fit)
-        
-        
-        ## Restrict to data from 1990/1991 through 2008/2009 seasons
-        #train_seasons <- paste0(2000:2007, "/", 2001:2008)
-        #data <- data[data$season %in% train_seasons, ]
-        
-        ## Form variable with total cases + 1 which can be logged
-        #data$total_cases_plus_1 <- data$total_cases + 1
-        
-        ## convert dates
-        #data$time <- mdy(data$week_start_date)
-        
-        #xreg <- Bauchi_test%>%
-        #  select(c(air_temperature,relative_humidity,precipitation_amount))
-       
-        
-        #xreg <- as.matrix(xreg)
-        #xreg1 <- xreg[1:312,]
-        ## Add time_index column.  This is used for calculating the periodic kernel.
-        ## Here, this is calculated as the number of days since some origin date (1970-1-1 in this case).
-        ## The origin is arbitrary.
-    
-    #saveRDS(seasonally_differenced_log_sarima_fit,
-    #    file = file.path(
-    #        "../../../inst/results",
-    #        "campyDE",
-     #       "estimation-results/sarima-fit_iq2.rds"))
 
-
+#Create Result Data Frame
 predictions_df <- data.frame(ph=rep(seq_len(52), times = 1 * 52),
 	last_obs_season=rep(c("2017"), each = 52, times = 52),
 	last_obs_week=rep(seq_len(52) - 1, each = 52 * 1),
@@ -112,15 +83,9 @@ predictions_df$predictive_95pct_lb <- NA
 predictions_df$predictive_95pct_ub <- NA
 predictions_df$week_start_date <- Bauchi_test$week[1]
 
-
-
-#sj_log_sarima_fit <- sj_log_sarima_fit_manual1  ## very bad
-#sj_log_sarima_fit <- sj_log_sarima_fit_manual2  ## quite bad
-#sj_log_sarima_fit <- sj_log_sarima_fit_manual3  ## very bad
-
+#Create Predictions
 sarima_inds <- which(predictions_df$model == "sarima")
 start_time <- Sys.time()
-#sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
 	last_obs_ind <- which(Bauchi_test$year == predictions_df$last_obs_season[predictions_df_row_ind] &
@@ -158,46 +123,35 @@ for(predictions_df_row_ind in sarima_inds) {
 	temp <- qlnorm(c(0.025, 0.25, 0.75, 0.975),
 		meanlog = predictive_log_mean,
 		sdlog = as.numeric(predict_result$se[ph]))
-	#temp <- c(predict_result$lower[ph, 2],predict_result$lower[ph, 1],predict_result$upper[ph, 2 ],predict_result$upper[ph, 1 ])
 	predictions_df[predictions_df_row_ind, c("predictive_95pct_lb", "predictive_50pct_lb", "predictive_50pct_ub", "predictive_95pct_ub")] <-
 		temp - 1
 	print(predictions_df_row_ind)
 }
 end_time <- Sys.time()
 end_time - start_time
-#predictions_df <- predictions_df[predictions_df$week_start_date %in% Bauchi_test$week_start_date[Bauchi_test$season %in% c("2010,2011")], ]
 
-predictions_df$ph <- as.factor(predictions_df$ph)
-
+#Save Results
 sarima_predictions_df <- predictions_df
-#save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_Meases_111_100.Rdata")
+save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_Meases_111_100.Rdata")
 load("../../results/dengue_sj/prediction-results/sarima-predictions_Meases_Short_111_100.Rdata")
 predictions_df <- sarima_predictions_df
 
 predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
 
+#Observed Values from Prediction Interval
 pred <- Bauchi_test[262:313,]
 
-w1 <- predictions_df$prediction[predictions_df$ph==8]
-u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==8]
-l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==8]
-u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==8]
-l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==8]
+#Get Results for set Prediction Horizon
+w1 <- predictions_df$prediction[predictions_df$ph==1]
+u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
+l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
+u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]
+l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
-par(mfrow=c(1,1))
-plot(pred$Date,w1, type="l", xlab= "time [week]",ylab="Measles Cases", main ="Predicted vs Actual Measles Cases (1,1,1) (1,0,0)",
-     col="blue")
-points(pred$Date,pred$Cases,type="l", col="black")
-points(pred$Date,l95,type="l", col="grey")
-points(pred$Date,u95,type="l", col="grey")
-points(pred$Date,l50,type="l", col="grey")
-points(pred$Date,u50,type="l", col="grey")
-
-
+#Plot Predictions
 png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds//Final/Sarima Measles_8_t.png', width=2000, height=1400, res=300,pointsize = 10)
 plot(pred$Date,pred$Cases,type="l", ylab ="Measles Cases", xlab= "time",main="SARIMA 8-week Prediction Horizon",lwd=1.5,ylim = c(0,max(w1)), cex.lab=1.2)
 polygon(x=c(pred$Date,rev(pred$Date)),y=c(u95,rev(l95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
-#polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
 points(pred$Date,w1, type = "l", col="blue", lwd=1.5)
 abline(v=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),col = "lightgray", lty = "dotted")
 axis(1,at=seq(as.Date("2017-01-01"), by="+2 month", length.out=7),labels = F)
@@ -209,23 +163,12 @@ legend("topleft",
                 "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
 dev.off()
 
-
-library(ggplot2)
-ggplot() +
-	geom_line(aes(x = 419:522, y = case), data = pred) +
-	geom_line(aes(x = 419:522, y = w1, color ="blue")) +
-  #geom_line(aes(x=419:522, y=u95),linetype="dashed")+
-  #geom_line(aes(x=419:522, y=l95),linetype="dashed")+
-	theme_bw()+
-  ggtitle("Predicted vs Actual Campylobacteriosis Cases")+
-  ylab("Campylobacteriosis Cases")+
-  xlab("Week")
-
-
-sqrt(mean((pred$Cases-w1)^2,na.rm=T))#/sqrt(mean((pred$Cases)^2))
+#RMSE and SRMSE for test data 
+sqrt(mean((pred$Cases-w1)^2,na.rm=T))/sqrt(mean((pred$Cases)^2))
+#PI Coverage
 t<- data.frame(w1,u95,l95,pred$Cases)
 t <- t%>%
   mutate(CI_cov = between(pred.Cases,l95,u95))
 summary(t$CI_cov)
 
-updated_sj_log_sarima_fit$var.coef <- matrix(1, nrow = 8, ncol = 8)
+

@@ -42,19 +42,8 @@ campyDE$date <- as.Date(campyDE$date)
         
         summary(seasonally_differenced_log_sarima_fit)
         
-        
-        ## Restrict to data from 1990/1991 through 2008/2009 seasons
-        #train_seasons <- paste0(2000:2007, "/", 2001:2008)
-        #data <- data[data$season %in% train_seasons, ]
-        
-        ## Form variable with total cases + 1 which can be logged
-        #data$total_cases_plus_1 <- data$total_cases + 1
-        
-        ## convert dates
-        #data$time <- mdy(data$week_start_date)
-        
 
-
+#Create Result Data Frame
 predictions_df <- data.frame(ph=rep(seq_len(52), times = 2 * 52),
 	last_obs_season=rep(c("2010", "2011"), each = 52, times = 52),
 	last_obs_week=rep(seq_len(52) - 1, each = 52 * 2),
@@ -93,15 +82,9 @@ predictions_df$predictive_95pct_lb <- NA
 predictions_df$predictive_95pct_ub <- NA
 predictions_df$week_start_date <- Campy_test$week_start_date[1]
 
-
-
-#sj_log_sarima_fit <- sj_log_sarima_fit_manual1  ## very bad
-#sj_log_sarima_fit <- sj_log_sarima_fit_manual2  ## quite bad
-#sj_log_sarima_fit <- sj_log_sarima_fit_manual3  ## very bad
-
+#Create Predictions
 sarima_inds <- which(predictions_df$model == "sarima")
 start_time <- Sys.time()
-#sarima_inds <- which(predictions_df$model == "sarima" & predictions_df$ph %in% c(1, 13, 26, 39, 52))
 for(predictions_df_row_ind in sarima_inds) {
 	ph <- as.numeric(predictions_df$ph[predictions_df_row_ind])
 	last_obs_ind <- which(Campy_test$Year == predictions_df$last_obs_season[predictions_df_row_ind] &
@@ -146,37 +129,26 @@ for(predictions_df_row_ind in sarima_inds) {
 end_time <- Sys.time()
 end_time - start_time
 
-#predictions_df <- predictions_df[predictions_df$week_start_date %in% Campy_test$week_start_date[Campy_test$season %in% c("2010,2011")], ]
-
-predictions_df$ph <- as.factor(predictions_df$ph)
-
+#Save Results
 sarima_predictions_df <- predictions_df
-#save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
+save(sarima_predictions_df, file = "../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
 load("../../results/dengue_sj/prediction-results/sarima-predictions_campy_102_001.Rdata")
 predictions_df <- sarima_predictions_df
-#predictions_df$week_start_date <- as.factor(predictions_df$week_start_date)
+
+#Observed Values from Prediction Interval
 pred <- Campy_test[419:522,]
 
+#Get Results for set Prediction Horizon
+w1 <- predictions_df$prediction[predictions_df$ph==1]
+u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
+l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
+u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]
+l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
-w1 <- predictions_df$prediction[predictions_df$ph==4]
-u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==4]
-l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==4]
-u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==4]
-l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==4]
-
-par(mfrow=c(1,1))
-plot(pred$date,w1, type="l", xlab= "time [years]",ylab="Campylobacteriosis Cases", main ="Predicted vs Actual Campylobacteriosis Cases (1,1,1) (1,0,0)",
-     col="blue")
-points(pred$date,pred$case,type="l", col="black")
-points(pred$date,l95,type="l", col="grey")
-points(pred$date,u95,type="l", col="grey")
-points(pred$date,l50,type="l", col="grey")
-points(pred$date,u50,type="l", col="grey")
-
+#Plot Predictions
 png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds/Final/Sarima Campy_4_t.png', width=2000, height=1400, res=300,pointsize = 10)
 plot(pred$date,pred$case,type="l", ylab ="Campylobacteriosis Cases", xlab= "time",main="SARIMA 4-week Prediction Horizon",lwd=1.5,ylim = c(0,max(u95)), cex.lab=1.2)
 polygon(x=c(pred$date,rev(pred$date)),y=c(u95,rev(l95)),col = rgb(0, 0, 1, alpha = 0.1), border = rgb(0, 0, 1, alpha = 0.3))
-#polygon(x=c(p3d$week_start_date,rev(p3d$week_start_date)),y=c(p3d$ub50,rev(p3d$lb50)),col = rgb(1, 0, 0, alpha = 0.5), border = rgb(1, 0, 0, alpha = 1))
 points(pred$date,w1, type = "l", col="blue", lwd=1.5)
 abline(v=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),col = "lightgray", lty = "dotted")
 axis(1,at=seq(as.Date("2010-01-01"), by="+6 month", length.out=5),labels = F)
@@ -188,22 +160,13 @@ legend("topleft",
                 "black"), pch = c(15, 15, 15), bty = "n",cex = 1.2)
 dev.off()
 
-library(ggplot2)
-ggplot() +
-	geom_line(aes(x = 419:522, y = case), data = pred) +
-	geom_line(aes(x = 419:522, y = w1, color ="blue")) +
-  #geom_line(aes(x=419:522, y=u95),linetype="dashed")+
-  #geom_line(aes(x=419:522, y=l95),linetype="dashed")+
-	theme_bw()+
-  ggtitle("Predicted vs Actual Campylobacteriosis Cases")+
-  ylab("Campylobacteriosis Cases")+
-  xlab("Week")
 
-
+#RMSE and SRMSE for test data 
 sqrt(mean((pred$case-w1)^2,na.rm=T))/sqrt(mean((pred$case)^2))
+#PI Coverage
 t<- data.frame(w1,u95,l95,pred$case)
 t <- t%>%
   mutate(CI_cov = between(pred$case,l95,u95))
 summary(t$CI_cov)
-27/104
-updated_sj_log_sarima_fit$var.coef <- matrix(1, nrow = 8, ncol = 8)
+
+

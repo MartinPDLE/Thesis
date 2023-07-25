@@ -268,25 +268,7 @@ Bauchi <- merge(Measles,weather, by="index")
 ##### Add Lags 
 test <- Bauchi%>%
   select(Cases)
-addlag <- function(df, i) {
-  varname <- paste(x, i , sep="")
-  df$varname <- with(df, lag(x, n=i))
-  df
-}
-#test <- Bauchi
-#variables <- names(Bauchi[,c(2,5,6)])
-#for (x in variables) {
-#  for (v in 1:25) {
-#    test <- addlag(test,v)
-#  }
-#}
-lag_matrix<-c()
-for (i in 1:20 ){
-  temp <- Bauchi$Cases
-  #lag_matrix<- c(lag_matrix,lag(Cases, n=i))
-  lag_matrix <- rbind(lag_matrix,lag(Cases, n=i))
-}
-lag_matrix <- t(lag_matrix)
+
 {
 Bauchi <- Bauchi%>%
   mutate(Cases01 = lag(Cases, n=1))
