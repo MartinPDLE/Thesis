@@ -1,7 +1,5 @@
 # Evaluate the logarithmic scores for dengue forecasts
 
-# scp johannes@130.60.71.234:/home/johannes/Documents/hhh4predict/Theory/Article_Theory/data_analysis_forecasting/dengue/obtain_forecasts_dengue.R obtain_forecasts_dengue.R
-# setwd("/home/johannes/Documents/hhh4predict/Theory/Article_Theory/data_analysis_forecasting/")
 setwd("dengue")
 
 library(surveillance)
@@ -15,7 +13,6 @@ data("dengueSJ")
 max_horizon <- 8
 tps <- (19*52 - max_horizon):(23*52 - 1)
 n_units <- ncol(I@observed)
-#names_lag_structures <- c("ar1", "pois", "lin", "geom", "unres", "end", "siraj")
 names_lag_structures <- "geom"
 
 # create directory if necessary:
