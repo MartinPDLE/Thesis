@@ -1,0 +1,116 @@
+setwd("~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Data")
+
+
+par(mfrow=c(1,1))
+####### Plots for Iquitos
+Iquitos <- read.csv("Iquitos_total2.csv")
+Iquitos$date <- mdy(Iquitos$week_start_date)
+# Dengue
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Dengue Iquitos.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(Iquitos$date,Iquitos$total_cases,ylab="No. infected", xlab="time [years]",type="l", lwd=1.1, cex.lab=1.1)
+abline(v=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+sum(Iquitos$total_cases)
+summary(Iquitos$air_temperature)
+par(mfrow=c(1,1))
+#Daily Temperature Range
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Iquitos DTR.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(y=Iquitos$DTR, x=Iquitos$date,type="l", ylab="Average Weekly Daily Temperature Range (°C)", xlab="time [years]")
+abline(v=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Temperature
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Iquitos Temp.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(y=Iquitos$air_temperature, x=Iquitos$date, type="l", ylab="Average Weekly Temperature (°C)", xlab="time [years]")
+abline(v=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Rainfall
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Iquitos Rain.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(y=Iquitos$precipitation_amount, x=Iquitos$date,type="l", ylab="Cummulative Weekly Rainfall (mm)", xlab="time [years]")
+abline(v=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Relative Humidity
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Iquitos Rel Hum.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(y=Iquitos$relative_humidity, x=Iquitos$date,type="l", ylab="Average Weekly Relative Humidity (%)", xlab="time [years]")
+abline(v=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Absolute Humdidity
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Iquitos Absolute Hum.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(y=Iquitos$specific_humidity, x=Iquitos$date,type="l", ylab="Average Weekly Absolute Humidity (g/kg)", xlab="time [years]")
+abline(v=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2001-01-01"), by="+1 year", length.out=9),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+####### Germany
+plot(campyDE$case,type="l",)
+points(campyDE$hum*100,type="l",col="red")
+data(campyDE)
+#Campylobacteriosis
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Campy Ger.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(campyDE$date,campyDE$case,ylab="No. infected", xlab="time [years]",type="l", lwd=1.1, cex.lab=1.1)
+abline(v=seq(as.Date("2002-01-01"), by="+1 year", length.out=11),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2002-01-01"), by="+1 year", length.out=11),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+#Absolute Humidity
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Ger Abs Hum.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(y=campyDE$hum, x=campyDE$date,type="l", ylab="Average Weekly Absolute Humidity (g/kg)", xlab="time [years]")
+abline(v=seq(as.Date("2002-01-01"), by="+1 year", length.out=11),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2002-01-01"), by="+1 year", length.out=11),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+####### Bauchi
+Bauchi <- read.csv("Bauchi_Complete.csv")
+
+Bauchi$Date<-lubridate::ymd( "2012-01-01" ) + lubridate::weeks( Bauchi$week - 1 )+lubridate::years(Bauchi$year - 2012)
+Bauchi$Date <- ymd(Bauchi$Date)
+Bauchi$Date <- as.Date(Bauchi$Date)
+Bauchi <-Bauchi[Bauchi$year > 2012, , drop = FALSE]
+
+#Measles
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Measles Bauchi.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(Bauchi$Date,Bauchi$Cases,ylab="No. infected", xlab="time [years]",type="l", lwd=1.1, cex.lab=1.1)
+abline(v=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Rain
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Bauchi Rain.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(Bauchi$Date,Bauchi$mm,type="l", ylab="Cummulative Weekly Rainfall (mm)", xlab="time [years]")
+abline(v=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Temperature
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Bauchi Temp.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(Bauchi$Date,Bauchi$temperature,type="l",ylab="Average Daily Temperature (°C)",xlab="time [years]")
+abline(v=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+#Relative Humdidity
+png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Met Plots/Bauchi Rel Hum.png', width=2000, height=1200, res=300,pointsize = 10)
+plot(Bauchi$Date,Bauchi$avg_hum,type="l",ylab="Average Weekly Relative Humidity (%)",xlab="time [years]")
+abline(v=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),col = "lightgray", lty = "dotted")
+axis(1,at=seq(as.Date("2013-01-01"), by="+1 year", length.out=6),labels = F)
+grid(NA, NULL, col = "lightgray", lty = "dotted")
+dev.off()
+
+plot(Bauchi$Date,Bauchi$temperature,type="l",col="blue")
