@@ -10,6 +10,7 @@ cutoff <- as.Date("2007-07-01")
 
 library(mgcv)
 form <- as.formula("total_cases ~s(total_cases1)+s(relative_humidity3)+s(DTR3)+s(precipitation_amount3)")
+#form <- as.formula("total_cases ~s(total_cases1)+s(specific_humidity3)")
 
 
 training <- Iquitos[Iquitos$Date < cutoff,]
@@ -88,4 +89,7 @@ sqrt(mean((pred$total_cases-pred$predict)^2,na.rm=T))/sqrt(mean((pred$total_case
 preddata <- preddata%>%
  mutate(CI_cov = between(total_cases,lower,upper))
 summary(preddata$CI_cov)
+
+#PI NAW
+1/(max(pred$total_cases)-min(pred$total_cases))*mean(preddata$upper-preddata$lower)
 

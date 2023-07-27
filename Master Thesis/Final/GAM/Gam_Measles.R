@@ -63,9 +63,6 @@ preddata <- transform(preddata,
 #pr <- subset(preddata,year>2010)
 #######
 p <- f.total$predict
-train <- f.total[1:209,]
-pred <- f.total[210:261,]
-preddata <- preddata[210:261,]
 
 train <- f.total[Bauchi$Date < cutoff,]
 pred <- f.total[f.total$Date >= cutoff,]
@@ -98,4 +95,7 @@ sqrt(mean((pred$Cases-pred$p)^2,na.rm=T))/sqrt(mean((pred$Cases)^2))
 preddata <- preddata%>%
   mutate(CI_cov2 = between(Cases01,lower,upper))
 summary(preddata$CI_cov2)
+
+#PI NAW
+1/(max(pred$Cases)-min(pred$Cases))*mean(preddata$upper-preddata$lower)
 

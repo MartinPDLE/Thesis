@@ -136,11 +136,11 @@ pred <- Iquitos_test[365:468,]
 pred$date <- mdy(pred$week_start_date)
 
 #Get Results for set Prediction Horizon
-w1 <- predictions_df$prediction[predictions_df$ph==8]
-u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==8]
-l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==8]
-u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==8]
-l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==8]
+w1 <- predictions_df$prediction[predictions_df$ph==1]
+u95 <- predictions_df$predictive_95pct_ub[predictions_df$ph==1]
+l95 <- predictions_df$predictive_95pct_lb[predictions_df$ph==1]
+u50 <- predictions_df$predictive_80pct_ub[predictions_df$ph==1]
+l50 <- predictions_df$predictive_80pct_lb[predictions_df$ph==1]
 
 #Plot Predictions
 png('~/Documents/Uni/Epidemiology/Master Thesis/Thesis/Master Thesis/Plots/Preds//Final/Sarima Dengue_8_t.png', width=2000, height=1400, res=300,pointsize = 10)
@@ -165,5 +165,7 @@ t<- data.frame(w1,u95,l95,pred$total_cases)
 t <- t%>%
   mutate(CI_cov = between(pred$total_cases,l95,u95))
 summary(t$CI_cov)
+#PI NAW
+1/(max(pred$total_cases)-min(pred$total_cases))*mean(u95-l95)
 
 

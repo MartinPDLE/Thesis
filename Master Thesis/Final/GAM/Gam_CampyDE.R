@@ -85,4 +85,6 @@ preddata <- preddata%>%
   mutate(CI_cov = between(case,lower,upper))
 summary(preddata$CI_cov)
 
+#PI NAW
+1/(max(pred$case)-min(pred$case))*mean(preddata$upper-preddata$lower)
 

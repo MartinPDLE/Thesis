@@ -170,5 +170,8 @@ t<- data.frame(w1,u95,l95,pred$Cases)
 t <- t%>%
   mutate(CI_cov = between(pred.Cases,l95,u95))
 summary(t$CI_cov)
+#PI NAW
+1/(max(pred$Cases)-min(pred$Cases))*mean(u95-l95)
+
 
 
